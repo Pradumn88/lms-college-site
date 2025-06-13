@@ -1,3 +1,7 @@
+# Ignore env files
+.env
+.env.*            # Includes .env.local, .env.production, etc.
+Client/.env       # In case there's another .env inside Client folder
 # Logs
 logs
 *.log
