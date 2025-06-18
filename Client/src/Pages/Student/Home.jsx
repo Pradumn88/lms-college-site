@@ -9,13 +9,15 @@ import Footer from '../../Components/Student/Footer'
 
 const Home = () => {
   return (
-    <div className='flex flex-col items-center space-y-7 text-center'>
-      <Hero/>
-      <Searchbar/>
-      <Companies/>
-      <CourseSection/>
-      <Testimonials/>
-      <CalltoAction/>
+    <div className='flex flex-col min-h-screen'>
+      <main className='flex flex-col items-center space-y-7 text-center'>
+        <Hero/>
+        <Searchbar/>
+        <Companies/>
+        <CourseSection/>
+        <Testimonials/>
+        <CalltoAction/>
+      </main>
       <Footer/>
     </div>
   )
