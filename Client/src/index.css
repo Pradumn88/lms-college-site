@@ -3,7 +3,7 @@
 @import "tailwindcss";
 
 *{
-  font-family: Outfit;
+  font-family: 'Inter', sans-serif;
 }
 html, body, #root {
   height: 100%;

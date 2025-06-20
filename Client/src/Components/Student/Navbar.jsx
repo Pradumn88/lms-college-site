@@ -13,7 +13,7 @@ const Navbar = () => {
   const {navigate,isEducator}=useContext(AppContext)
 
   return (
-    <div className={`flex items-center justify-between px-4 sm:px-8 md:px-14 lg:px-30 border-b py-4 ${IsCoursePage ? 'bg-blue-200' :'bg-cyan-300'}`}>
+    <div className={`flex items-center justify-between px-4 sm:px-8 md:px-14 lg:px-30 border-b py-4 ${IsCoursePage ? 'bg-blue-200' :'bg-cyan-100'}`}>
       <img onClick={()=>navigate('/')} src={assets.logo} alt="Logo" className='w-28 lg:w-32 cursor-pointer'/>
       <div className='hidden md:flex items-center gap-5 text-gray-500'>
         <div className='flex justify-between items-center gap-3'>

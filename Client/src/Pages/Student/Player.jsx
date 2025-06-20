@@ -5,6 +5,7 @@ import { AppContext } from '../../Context/AppContext'
 import { useParams } from 'react-router-dom'
 import YouTube from 'react-youtube'
 import Footer from '../../Components/Student/Footer'
+import Rating from '../../Components/Student/Rating'
 const Player = () => {
 
   const {enrolledCourses,calculateChapterTime}=useContext(AppContext)
@@ -34,6 +35,7 @@ const Player = () => {
   },[enrolledCourses])
   return (
     <>
+    {/* <div className='p-4 sm:p-10 flex flex-col-reverse md:flex md:flex-cols-reverse gap-10 md:px-36'> */}
     <div className='p-4 sm:p-10 flex flex-col-reverse md:grid md:grid-cols-2 gap-10 md:px-36'>
     {/* Left column   */}
     <div>
@@ -58,7 +60,7 @@ const Player = () => {
                             <div className='flex gap-2'>
                               {lecture.lectureUrl && <p onClick={()=> setPlayerData({
                                 ...lecture, chapter:index+1, lecture:i+1
-                              })} className='cursor-pointer text-blue-500'> Watch</p>}
+                              })} className='cursor-pointer text-blue-500 underline'> Watch</p>}
                               <p>{humanizeDuration(lecture.lectureDuration *60*1000,{units: ['h','m']})}</p>
                             </div>
                           </div>
@@ -69,6 +71,10 @@ const Player = () => {
                 </div>
               ))}
             </div>
+        <div className='flex items-center gap-2 py-3 mt-10'>
+          <h1 className='text-xl font-bold'>Rate this Course: </h1>
+          <Rating initialRating={0}/>
+        </div>
     </div>
 
     {/* right column */}
