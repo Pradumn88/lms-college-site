@@ -1,48 +1,83 @@
 import React from 'react';
-import logoDark from '../../assets/logo_dark.png'; // Adjust path and file extension as needed
+import { assets } from '../../assets/assets';
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-900 md:px-36 text-left w-full mt-10">
-      <div className="flex flex-col md:flex-row items-start px-8 md:px-0 justify-center gap-10 md:gap-32 py-10 border-b border-white/30">
-        <div className="flex flex-col md:items-start items-center w-full md:w-auto">
-          <img src={logoDark} alt="Company Logo" className="h-10" /> {/* Added class for sizing */}
-          <p className="mt-6 text-center md:text-left text-sm text-white/80">
-            Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text.
+    <footer className='bg-gray-900 md:px-36 text-left w-full mt-auto'>
+      <div className='flex flex-col md:flex-row items-start px-8 md:px-0 justify-center gap-10 md:gap-32 py-10 border-b border-white/30'>
+        {/* Logo + LMS Description */}
+        <div className='flex flex-col md:items-start items-center w-full'>
+          <img src={assets.logo_dark} alt="logo" />
+          <p className='mt-6 text-center md:text-left text-sm text-white/80'>
+            Edemy is a modern Learning Management System (LMS) that offers a wide variety of professional courses online. Our platform enables learners to gain skills through expertly designed content, quizzes, and real-time feedback — all in one place.
           </p>
         </div>
-        <div className="flex flex-col md:items-start items-center w-full md:w-auto">
-          <h2 className="font-semibold text-white mb-5">Company</h2>
-          <ul className="flex md:flex-col w-full justify-between text-sm text-white/80 md:space-y-2">
-            <li><a href="/" className="hover:underline">Home</a></li>
-            <li><a href="/about" className="hover:underline">About us</a></li>
-            <li><a href="/contact" className="hover:underline">Contact us</a></li>
-            <li><a href="/privacy" className="hover:underline">Privacy policy</a></li>
+
+        {/* Company Links */}
+        <div className='flex flex-col md:items-start items-center w-full'>
+          <h2 className='font-semibold text-white mb-5'>Company</h2>
+          <ul className='flex md:flex-col w-full justify-between text-sm text-white/80 md:space-y-2'>
+            <li><a href="#top" className='hover:underline transition-all duration-200'>Home</a></li>
+            <li><span className='cursor-default'>About us</span></li>
+            <li><span className='cursor-default'>Privacy policy</span></li>
           </ul>
         </div>
-        <div className="flex flex-col md:items-start items-center w-full md:w-auto">
-          <h2 className="font-semibold text-white mb-5">Connect us on LinkedIn</h2>
-          <p className="text-sm text-white/80">
-            For the latest updates, projects, certifications, and our regular posts.
-          </p>
-          <div className="flex items-center gap-2 pt-4">
-            <input
-              type="email"
-              placeholder="Enter your email address"
-              className="border border-gray-500/30 bg-gray-800 text-gray-500 placeholder-gray-500 outline-none w-64 h-9 rounded px-2 text-sm"
-              aria-label="Email address for subscription"
-            />
-            <button
-              type="submit"
-              className="bg-blue-600 w-24 h-9 text-white rounded hover:bg-blue-700"
+
+        {/* Contact Info */}
+        <div className='flex flex-col md:items-start items-center w-full'>
+          <h2 className='font-semibold text-white mb-5'>Reach us at</h2>
+          <div className='flex flex-col space-y-2'>
+            <a 
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=pandeypradumn2222@gmail.com" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className='text-sm text-white/80 hover:text-white hover:underline transition-all duration-200'
             >
-              Subscribe
-            </button>
+              pandeypradumn2222@gmail.com
+            </a>
+            <a 
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=krishnabambani1@gmail.com" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className='text-sm text-white/80 hover:text-white hover:underline transition-all duration-200'
+            >
+              krishnabambani1@gmail.com
+            </a>
+          </div>
+        </div>
+
+        {/* LinkedIn Section */}
+        <div className='flex flex-col md:items-start items-center w-full'>
+          <h2 className='font-semibold text-white mb-5'>Connect with us</h2>
+          <div className='flex flex-col space-y-2'>
+            <a 
+              href="https://www.linkedin.com/in/pradumnpandey/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className='text-sm text-white/80 hover:text-blue-400 hover:underline transition-all duration-200 flex items-center gap-2'
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+              </svg>
+              Pradumn Pandey
+            </a>
+            <a 
+              href="https://www.linkedin.com/in/krishnabhambani/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className='text-sm text-white/80 hover:text-blue-400 hover:underline transition-all duration-200 flex items-center gap-2'
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+              </svg>
+              Krishna Bambani
+            </a>
           </div>
         </div>
       </div>
-      <p className="py-4 text-center text-xs md:text-sm text-white/60">
-        Copyright © {new Date().getFullYear()} . All Rights Reserved
+
+      <p className='py-4 text-center text-xs md:text-sm text-white/60'>
+        Copyright 2025. All Rights Reserved
       </p>
     </footer>
   );
