@@ -13,6 +13,7 @@ import StudentEnrolled from './Pages/Educator/StudentsEnrolled.jsx'
 import Loading from './Components/Student/Loading.jsx'
 import Navbar from './Components/Student/Navbar.jsx';
 import { useClerk, useUser,SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
+import 'quill/dist/quill.snow.css';
 
 const App = () => {
   const isEducatorRoute=useMatch('/Educator/*')
@@ -32,7 +33,7 @@ const App = () => {
         <Route path='/player/:courseId' element={<Player/>}/>
         <Route path='/loading/:path' element={<Loading/>}/>
         <Route path='/Educator' element={<Educatorr />}>
-          <Route path='educator' element={<Dashboard/>}/>
+          <Route path='/Educator' element={<Dashboard/>}/>
           <Route path='add-course' element={<AddCourse/>}/>
           <Route path='my-courses' element={<MyCourses/>}/>
           <Route path='students-enrolled' element={<StudentEnrolled/>}/>
