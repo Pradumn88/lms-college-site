@@ -13,9 +13,6 @@ export const clerkWebhooks = async (req, res)=>{
         })
 
         const {data, type} = req.body
-        console.log("Webhook Type:", type);
-        console.log("Webhook Data:", data);
-
         switch (type) {
             case 'user.created': {
                 const userData = {
@@ -35,7 +32,7 @@ export const clerkWebhooks = async (req, res)=>{
                     name: data.first_name + " " + data.last_name,
                     imageUrl: data.image_url,
                 }
-                await User.findOneAndUpdate({_id: data.id}, userData)
+                await User.findOneAndUpdate(data.id, userData)
                 res.json({})
                 break;
             }
