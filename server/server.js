@@ -1,20 +1,22 @@
 import express from 'express'
 import cors from 'cors'
-import 'dotenv/config'
+import 'dotenv/config';
 import connectDB from './configs/mongodb.js'
 import { clerkWebhooks } from './controllers/webhooks.js'
 import educatorRouter from './routes/educatorRoutes.js'
 import { clerkMiddleware } from '@clerk/express'
 
+
 //initialise Express
-const app = express()
+const app = express();
 
 //connect to databse
-await connectDB()
+await connectDB();
 
 //middleware 
 app.use(cors())
 app.use(clerkMiddleware())
+app.use('/api/educator', express.json(), educatorRouter)
 
 //routes 
  

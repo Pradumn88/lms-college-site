@@ -1,10 +1,11 @@
-import { clerkClient } from '@clerk/express'
+import { getAuth,clerkClient } from '@clerk/express'
+import { get } from 'mongoose';
 import { RetryScheduleInOut } from 'svix'
 
 //update role to educator
 export const updateRoleToEducator = async (req, res)=>{
     try {
-        const { userId } = req.auth();
+        const  userId  = req.auth.userId
 
         await clerkClient.users.updateUserMetadata(userId,{
             publicMetadata:{
