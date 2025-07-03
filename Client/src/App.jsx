@@ -14,6 +14,7 @@ import Loading from './Components/Student/Loading.jsx'
 import Navbar from './Components/Student/Navbar.jsx';
 import { useClerk, useUser,SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
 import 'quill/dist/quill.snow.css';
+import { ToastContainer } from 'react-toastify';
 
 const App = () => {
   const isEducatorRoute=useMatch('/Educator/*')
@@ -23,6 +24,7 @@ const App = () => {
 
   return (
     <div className='text-default min-h-screen bg-white'>
+      <ToastContainer />
       {!isEducatorRoute && <Navbar/>}
       <Routes>
         <Route path='/' element={<Home/>}/>

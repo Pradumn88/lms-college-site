@@ -4,23 +4,40 @@ import {Line} from 'rc-progress'
 import Footer from '../../Components/Student/Footer'
 const MyEnrollments = () => {
 
-  const {enrolledCourses,calculateCourseDuration,navigate} =useContext(AppContext)
-  const [progressArray,setProgressArray]=useState([
-    {lecturesCompleted:2, totalLectures:4},
-    {lecturesCompleted:1, totalLectures:5},
-    {lecturesCompleted:3, totalLectures:6},
-    {lecturesCompleted:4, totalLectures:4},
-    {lecturesCompleted:0, totalLectures:3},
-    {lecturesCompleted:5, totalLectures:7},
-    {lecturesCompleted:6, totalLectures:8},
-    {lecturesCompleted:2, totalLectures:6},
-    {lecturesCompleted:4, totalLectures:10},
-    {lecturesCompleted:3, totalLectures:5},
-    {lecturesCompleted:7, totalLectures:7},
-    {lecturesCompleted:1, totalLectures:4},
-    {lecturesCompleted:0, totalLectures:2},
-    {lecturesCompleted:5, totalLectures:5}
-  ])
+  const {enrolledCourses,calculateCourseDuration,navigate, userData, fetchUserEnrolledCourses, backendUrl, getToken, calculateNoOfLectures} =useContext(AppContext)
+  const [progressArray,setProgressArray]=useState([])
+
+  const getCourseProgress = async ()=>{
+    try {
+      const token = await getToken();
+      const tempProgressArray = await Promise.all(
+        enrolledCourses.map( async (course)=>{
+          const {data} = await axios.post(`${backendUrl}/api/user/get-course-progress`,{courseId : course._id}, {headers : { Authorization: `Bearer ${token}`}})
+          let totalLectures = calculateNoOfLectures(course);
+
+          const lecturesCompleted = data.progressData ? data.progressData.lecturesCompleted.length : 0;
+          return {totalLectures, lecturesCompleted}
+        })
+      )
+
+      setProgressArray(tempProgressArray);
+      
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }
+
+  useEffect(()=>{
+    if(userData){
+      fetchUserEnrolledCourses()
+    }
+  },[userData])
+
+  useEffect(()=>{
+    if(enrolledCourses.length > 0){
+      getCourseProgress()
+    }
+  },[enrolledCourses])
 
   return (
     <>
