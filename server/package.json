@@ -12,15 +12,18 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@clerk/express": "^1.7.2",
+    "@clerk/express": "^1.7.4",
+    "axios": "^1.10.0",
     "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
+    "dotenv": "^16.6.1",
     "express": "^5.1.0",
-    "mongoose": "^8.16.0",
+    "mongoose": "^8.16.1",
     "multer": "^2.0.1",
     "nodemon": "^3.1.10",
-    "stripe": "^18.2.1",
+    "quill": "^2.0.3",
+    "react-toastify": "^11.0.5",
+    "stripe": "^18.3.0",
     "svix": "^1.42.0"
   }
 }
