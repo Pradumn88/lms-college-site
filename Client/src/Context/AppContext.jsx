@@ -25,15 +25,20 @@ export const AppContextProvider = (props)=>{
     //Fetch all courses
     const fetchAllCourses=async()=>{
         try {
+            console.log('Fetching courses from:', backendUrl + '/api/course/all');
             const {data} = await axios.get(backendUrl + '/api/course/all');
+            console.log('Response from server:', data);
 
             if(data.success){
+                console.log('Courses fetched successfully:', data.courses);
                 setAllCourses(data.courses)
             }else{
+                console.error('Server returned error:', data.message);
                 toast.error(data.message)
             }
 
         } catch (error) {
+            console.error('Error fetching courses:', error);
             toast.error(error.message)
         }
     }

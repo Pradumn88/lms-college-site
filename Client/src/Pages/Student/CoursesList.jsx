@@ -12,17 +12,25 @@ const CoursesList = () => {
   const [filteredCourses, setFilteredCourses] = useState([])
 
   useEffect(()=>{
+    console.log('allCourses:', allCourses);
+    console.log('input:', input);
+    
     if(allCourses && allCourses.length>0){
       const tempCourses=allCourses.slice();
+      console.log('tempCourses:', tempCourses);
 
-      input? 
-       setFilteredCourses(
-        tempCourses.filter(
+      if(input){
+        const filtered = tempCourses.filter(
           item =>item.courseTitle.toLowerCase().includes(input.toLowerCase())
-
-        )
-       )
-       :setFilteredCourses(tempCourses)
+        );
+        console.log('filtered courses:', filtered);
+        setFilteredCourses(filtered);
+      } else {
+        setFilteredCourses(tempCourses);
+      }
+    } else {
+      console.log('No courses available or courses array is empty');
+      setFilteredCourses([]);
     }
   },[allCourses,input])
 
