@@ -8,7 +8,7 @@ const Footer = () => {
         
         {/* Logo + LMS Description */}
         <div className='flex flex-col md:items-start items-center w-full'>
-          <img src={assets.logo_dark} alt="logo" />
+          <h1 className='text-white text-2xl font-semibold '>AIM</h1>
           <p className='mt-6 text-center md:text-left text-sm text-white/80'>
             AIM is a modern Learning Management System (LMS) that offers a wide variety of professional courses online. Our platform enables learners to gain skills through expertly designed content, quizzes, and real-time feedback — all in one place.
           </p>
