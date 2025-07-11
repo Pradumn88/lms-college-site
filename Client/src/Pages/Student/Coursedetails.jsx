@@ -7,6 +7,7 @@ import humanizeDuration from 'humanize-duration';
 import Footer from '../../Components/Student/Footer'
 import YouTube from 'react-youtube'
 import { toast } from 'react-toastify';
+import axios from 'axios';
 
 const Coursedetails = () => {
   const {id}= useParams();
