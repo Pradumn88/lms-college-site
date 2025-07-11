@@ -6,41 +6,63 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 
 const MyEnrollments = () => {
+  const {enrolledCourses = [], calculateCourseDuration, navigate, userData, fetchUserEnrolledCourses, backendUrl, getToken, calculateNoOfLectures} = useContext(AppContext)
+  const [progressArray, setProgressArray] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const {enrolledCourses,calculateCourseDuration,navigate, userData, fetchUserEnrolledCourses, backendUrl, getToken, calculateNoOfLectures} =useContext(AppContext)
-  const [progressArray,setProgressArray]=useState([])
-
-  const getCourseProgress = async ()=>{
+  const getCourseProgress = async () => {
     try {
+      if (!enrolledCourses || enrolledCourses.length === 0) return;
+      
       const token = await getToken();
       const tempProgressArray = await Promise.all(
-        enrolledCourses.map( async (course)=>{
-          const {data} = await axios.post(`${backendUrl}/api/user/get-course-progress`,{courseId : course._id}, {headers : { Authorization: `Bearer ${token}`}})
-          let totalLectures = calculateNoOfLectures(course);
-
-          const lecturesCompleted = data.progressData ? data.progressData.lecturesCompleted.length : 0;
-          return {totalLectures, lecturesCompleted}
+        enrolledCourses.map(async (course) => {
+          try {
+            const {data} = await axios.post(`${backendUrl}/api/user/get-course-progress`,
+              {courseId: course._id},
+              {headers: { Authorization: `Bearer ${token}`}}
+            );
+            const totalLectures = calculateNoOfLectures(course);
+            const lecturesCompleted = data?.progressData?.lecturesCompleted?.length || 0;
+            return {totalLectures, lecturesCompleted};
+          } catch (err) {
+            console.error('Error fetching course progress:', err);
+            return {totalLectures: 0, lecturesCompleted: 0};
+          }
         })
-      )
-
+      );
       setProgressArray(tempProgressArray);
-      
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setLoading(false);
     }
   }
 
-  useEffect(()=>{
-    if(userData){
-      fetchUserEnrolledCourses()
+  useEffect(() => {
+    if (userData) {
+      fetchUserEnrolledCourses();
     }
-  },[userData])
+  }, [userData]);
 
-  useEffect(()=>{
-    if(enrolledCourses.length > 0){
-      getCourseProgress()
+  useEffect(() => {
+    if (enrolledCourses?.length > 0) {
+      getCourseProgress();
     }
-  },[enrolledCourses])
+  }, [enrolledCourses]);
+
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
+
+  if (!enrolledCourses || enrolledCourses.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-2xl font-semibold mb-4">My Enrollments</h1>
+        <p>No courses enrolled yet.</p>
+      </div>
+    );
+  }
 
   return (
     <>

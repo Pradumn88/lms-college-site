@@ -8,19 +8,18 @@ import { toast } from "react-toastify";
 
 export const AppContext = createContext()
 export const AppContextProvider = (props)=>{
-
     const backendUrl = import.meta.env.VITE_BACKEND_URL
-    
     const currency=import.meta.env.VITE_CURRENCY  
     const navigate = useNavigate()
 
     const {getToken} = useAuth()
-    const {user} = useUser()
+    const {user, isLoaded: isUserLoaded} = useUser()
 
     const [allCourses, setAllCourses] =useState([])
     const [isEducator,setIsEducator] = useState(false)
     const [enrolledCourses,setEnrolledCourses] = useState([])
     const [userData,setUserData] = useState(null)
+    const [loading, setLoading] = useState(true)
 
     //Fetch all courses
     const fetchAllCourses=async()=>{
@@ -36,7 +35,6 @@ export const AppContextProvider = (props)=>{
                 console.error('Server returned error:', data.message);
                 toast.error(data.message)
             }
-
         } catch (error) {
             console.error('Error fetching courses:', error);
             toast.error(error.message)
@@ -44,26 +42,29 @@ export const AppContextProvider = (props)=>{
     }
 
     //fetch user data
-
     const fetchUserData = async()=>{
-
-        if(user.publicMetadata.role == 'educator'){
-            setIsEducator(true)
-        }
-
+        if (!user) return;
+        
         try {
-            const token = await getToken();
+            if(user?.publicMetadata?.role === 'educator'){
+                setIsEducator(true)
+            }
 
-            const {data} = await axios.get(backendUrl + '/api/user/data', {headers : {Authorization: `Bearer ${token}`}})
+            const token = await getToken();
+            const {data} = await axios.get(backendUrl + '/api/user/data', {
+                headers : {Authorization: `Bearer ${token}`}
+            });
 
             if(data.success){
                 setUserData(data.user)
-            }
-            else{
+            } else {
                 toast.error(data.message)
             }
         } catch (error) {
+            console.error('Error fetching user data:', error);
             toast.error(error.message)
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -92,29 +93,34 @@ export const AppContextProvider = (props)=>{
     }
 
     //Function to calculate number of lectures in a course
-    const calculateNoofLectures=(course)=>{
+    const calculateNoOfLectures=(course)=>{
+        if (!course?.courseContent) return 0;
         let totalLectures=0;
         course.courseContent.forEach(chapter =>{
-            if(Array.isArray(chapter.chapterContent)){
-                totalLectures+=chapter.chapterContent.length
+            if(Array.isArray(chapter?.chapterContent)){
+                totalLectures += chapter.chapterContent.length;
             }
-        })
-        return totalLectures
+        });
+        return totalLectures;
     }
 
     //Fetch User enrolled course
     const fetchUserEnrolledCourses=async()=>{
+        if (!user) return;
+        
         try {
             const token = await getToken();
-            const { data } = await axios.get(backendUrl + '/api/user/enrolled-courses', { headers: { Authorization: `Bearer ${token}` } })
+            const { data } = await axios.get(backendUrl + '/api/user/enrolled-courses', {
+                headers : {Authorization: `Bearer ${token}`}
+            });
 
             if(data.success){
                 setEnrolledCourses(data.enrolledCourses.reverse())
-            }
-            else{
+            } else {
                 toast.error(data.message)
             }
         } catch (error) {
+            console.error('Error fetching enrolled courses:', error);
             toast.error(error.message)
         }
     }
@@ -123,20 +129,41 @@ export const AppContextProvider = (props)=>{
         fetchAllCourses()
     },[])
 
-    
-
     useEffect(()=>{
-        if(user){
-            fetchUserData()
-            fetchUserEnrolledCourses()
+        if(isUserLoaded) {
+            if(user) {
+                fetchUserData()
+                fetchUserEnrolledCourses()
+            } else {
+                setLoading(false)
+            }
         }
-    },[user])
+    },[user, isUserLoaded])
     
     const value={
-        currency,allCourses,navigate,calculateRatings,isEducator,setIsEducator,calculateChapterTime
-        ,calculateNoofLectures,calculateCourseDuration,enrolledCourses,fetchUserEnrolledCourses,
-        backendUrl,userData,setUserData,getToken, fetchAllCourses
+        currency,
+        allCourses,
+        navigate,
+        calculateRatings,
+        isEducator,
+        setIsEducator,
+        calculateChapterTime,
+        calculateNoOfLectures,  // Fixed the function name
+        calculateCourseDuration,
+        enrolledCourses,
+        fetchUserEnrolledCourses,
+        backendUrl,
+        userData,
+        setUserData,
+        getToken,
+        fetchAllCourses,
+        loading
     }
+
+    if (!isUserLoaded || loading) {
+        return <div className="flex justify-center items-center min-h-screen">Loading...</div>
+    }
+
     return (
         <AppContext.Provider value={value}>
             {props.children}
