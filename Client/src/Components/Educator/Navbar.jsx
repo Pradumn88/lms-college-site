@@ -1,21 +1,36 @@
 import React from 'react'
 import { assets, dummyEducatorData } from '../../assets/assets'
-import {UserButton,useUser} from '@clerk/clerk-react'
-import {Link} from 'react-router-dom'
+import { UserButton, useUser } from '@clerk/clerk-react'
+import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 
 const Navbar = () => {
-
-  const educatorData =dummyEducatorData
-  const {user} =useUser()
+  const educatorData = dummyEducatorData
+  const { user } = useUser()
 
   return (
-    <div className='flex items-center justify-between px-4 md:px-8 border-b bg-indigo-300/90 py-3'>
-      <Link to='/'>
-        <img src={assets.logo} alt="logo"  className='w-28 lg:w-32'/>    
+    <div className="flex items-center justify-between px-6 md:px-12 py-4 shadow-md bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500">
+      
+      {/* Stylish Project Name: AIM */}
+      <Link to="/" className="flex items-center">
+        <motion.h1
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-3xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 via-white to-cyan-300 drop-shadow-lg"
+        >
+          A<span className="text-white">I</span>M
+        </motion.h1>
       </Link>
-      <div className='flex items-center gap-5 text-gray-800 relative font-semibold'> 
-        <p>Hi! {user ? user.fullName : 'Developers'}</p>
-        {user ? <UserButton/> : <img src={assets.profile_img} className='max-w-8' />}
+
+      {/* Greeting and Profile */}
+      <div className="flex items-center gap-4 text-white font-medium">
+        <p className="text-sm md:text-base">Hi, {user ? user.fullName : 'Developer'} 👋</p>
+        {user ? (
+          <UserButton />
+        ) : (
+          <img src={assets.profile_img} alt="profile" className="w-8 h-8 rounded-full border-2 border-white" />
+        )}
       </div>
     </div>
   )

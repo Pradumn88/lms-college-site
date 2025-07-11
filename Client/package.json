@@ -14,6 +14,7 @@
     "@tailwindcss/vite": "^4.1.9",
     "autoprefixer": "^10.4.21",
     "axios": "^1.10.0",
+    "framer-motion": "^12.23.1",
     "humanize-duration": "^3.33.0",
     "postcss": "^8.5.5",
     "quil": "^1.1.30",

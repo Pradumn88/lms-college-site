@@ -16,7 +16,7 @@ const CourseSection = () => {
       <div className='grid auto gap-3 px-4 md:px-0 md:my-14'>
         {allCourses.slice(0,4).map((course,index)=> <Coursecard key={index} course={course}/>)}
       </div>
-      <button onClick={() => {
+      <button onClick={() => {  
         if (user) {
           window.scrollTo(0, 0);
           window.location.href = '/Course-List';
