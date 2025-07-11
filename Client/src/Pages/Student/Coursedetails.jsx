@@ -21,7 +21,18 @@ const Coursedetails = () => {
 
   const fetchCourseData= async()=>{
     try {
-      const {data} = await axios.get(backend + '/api/course/' + id)
+      const response = await axios.get(backend + '/api/course/' + id);
+      // If response is HTML, not JSON, show error
+      if (typeof response.data === 'string' && response.data.startsWith('<!doctype html>')) {
+        toast.error('Course details API returned HTML. Backend route may be missing or misconfigured.');
+        // fallback: try to find course from allCourses
+        const fallbackCourse = allCourses?.find(c => c._id === id);
+        if (fallbackCourse) {
+          setCourseData(fallbackCourse);
+        }
+        return;
+      }
+      const data = response.data;
       console.log('Course details API response:', data);
       if(data && data.success && data.courseData) {
         setCourseData(data.courseData);
