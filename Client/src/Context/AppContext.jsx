@@ -101,7 +101,7 @@ export const AppContextProvider = (props)=>{
     const fetchUserEnrolledCourses=async()=>{
         try {
             const token = await getToken();
-            const { data } = await axios.get(backendUrl + 'api/user/enrolled-courses',{headers : {Authorization: `Bearer ${token}`}})
+            const { data } = await axios.get(backendUrl + '/api/user/enrolled-courses', { headers: { Authorization: `Bearer ${token}` } })
 
             if(data.success){
                 setEnrolledCourses(data.enrolledCourses.reverse())

@@ -1,6 +1,6 @@
 import React, { useContext } from 'react'
 import { Link } from 'react-router-dom'
-import { AppContext } from '../../Context/AppContext'
+import { AppContext } from '../../Context/AppContext.jsx'
 import Coursecard from './Coursecard'
 import './CourseSection.css'
 import { useClerk, useUser ,UserButton} from '@clerk/clerk-react'
