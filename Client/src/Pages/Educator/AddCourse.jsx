@@ -51,6 +51,7 @@ const AddCourse = () => {
     }
 
     const imageUrl = await uploadImageToCloudinary(image);
+    console.log('Cloudinary image URL:', imageUrl);
     if (!imageUrl) return;
 
     const courseData = {
