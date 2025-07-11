@@ -68,7 +68,7 @@ const Coursedetails = () => {
 
   useEffect(()=>{
     if(userData &&  courseData){
-      setIsAlreadyEnrolled(userData.enrolledCourses.inludes(courseData._id))
+      setIsAlreadyEnrolled(userData.enrolledCourses.includes(courseData._id))
     }
   },[userData,courseData])
 
