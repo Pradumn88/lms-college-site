@@ -22,15 +22,26 @@ const Coursedetails = () => {
   const fetchCourseData= async()=>{
     try {
       const {data} = await axios.get(backend + '/api/course/' + id)
-
-      if(data.success){
-        setCourseData(data.courseData)
-      }
-      else{
-        toast.error(data.message)
+      console.log('Course details API response:', data);
+      if(data && data.success && data.courseData) {
+        setCourseData(data.courseData);
+      } else {
+        // fallback: try to find course from allCourses
+        const fallbackCourse = allCourses?.find(c => c._id === id);
+        if (fallbackCourse) {
+          setCourseData(fallbackCourse);
+        } else {
+          toast.error(data?.message || 'Course not found');
+        }
       }
     } catch (error) {
-      toast.error(error.message)
+      // fallback: try to find course from allCourses
+      const fallbackCourse = allCourses?.find(c => c._id === id);
+      if (fallbackCourse) {
+        setCourseData(fallbackCourse);
+      } else {
+        toast.error(error.message);
+      }
     }
   }
 
