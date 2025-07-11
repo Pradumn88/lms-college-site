@@ -179,6 +179,8 @@ const AddCourse = () => {
           <p>Course Title</p>
           <input
             type="text"
+            name="courseTitle"
+            id="courseTitle"
             onChange={(e) => setCourseTitle(e.target.value)}
             value={courseTitle}
             placeholder="Type Here"
@@ -196,6 +198,8 @@ const AddCourse = () => {
           <div className="flex flex-col gap-1">
             <p>Course Price</p>
             <input
+              name="coursePrice"
+              id="coursePrice"
               onChange={(e) => setCoursePrice(e.target.value)}
               type="number"
               value={coursePrice}
@@ -224,6 +228,8 @@ const AddCourse = () => {
         <div className="flex flex-col gap-1">
           <p>Discount%</p>
           <input
+            name="discount"
+            id="discount"
             type="number"
             onChange={(e) => setDiscount(e.target.value)}
             value={discount}
@@ -302,6 +308,8 @@ const AddCourse = () => {
                   <p>Lecture Title</p>
                   <input
                     type="text"
+                    name="lectureTitle"
+                    id="lectureTitle"
                     className="mt-1 block w-full border rounded py-1 px-2"
                     value={lectureDetails.lectureTitle}
                     onChange={(e) =>
@@ -313,6 +321,8 @@ const AddCourse = () => {
                   <p>Duration (mins)</p>
                   <input
                     type="number"
+                    name="lectureDuration"
+                    id="lectureDuration"
                     className="mt-1 block w-full border rounded py-1 px-2"
                     value={lectureDetails.lectureDuration}
                     onChange={(e) =>
@@ -324,6 +334,8 @@ const AddCourse = () => {
                   <p>Lecture URL</p>
                   <input
                     type="text"
+                    name="lectureUrl"
+                    id="lectureUrl"
                     className="mt-1 block w-full border rounded py-1 px-2"
                     value={lectureDetails.lectureUrl}
                     onChange={(e) =>
