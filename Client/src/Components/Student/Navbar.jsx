@@ -8,7 +8,7 @@ import { motion } from 'framer-motion'
 
 const Navbar = () => {
   const location = useLocation()
-  const isCoursePage = location.pathname.includes('/Course-List')
+  const isCoursePage = location.pathname.includes('/educator')
 
   const { openSignIn } = useClerk()
   const { user } = useUser()
@@ -40,7 +40,7 @@ const Navbar = () => {
   return (
     <div
       className={`flex items-center justify-between px-4 sm:px-8 md:px-14 py-4 border-b 
-      ${isCoursePage ? 'bg-gradient-to-r from-blue-200 to-cyan-200' : 'bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500'}`}
+      ${isCoursePage ? 'bg-gradient-to-r from-blue-300 to-cyan-800' : 'bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500'}`}
     >
       {/* Replacing logo with stylish AIM */}
       <div onClick={() => navigate('/')} className="cursor-pointer">
