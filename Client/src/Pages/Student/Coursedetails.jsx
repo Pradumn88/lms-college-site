@@ -59,14 +59,8 @@ const Coursedetails = () => {
   const enrollCourse = async () => {
   try {
     // Check if user is authenticated
-    if (!user) {
-      toast.warn('Please login to enroll in the course');
-      return;
-    }
-
-    // Ensure user data is available
     if (!userData) {
-      toast.warn('User data is loading. Please wait...');
+      toast.warn('Please login to enroll in the course');
       return;
     }
 
@@ -106,7 +100,7 @@ const Coursedetails = () => {
 
     // Make enrollment API call
     const { data } = await axios.post(
-      `${backendUrl}/api/user/purchase`,
+      `${backend}/api/user/purchase`,
       { courseId: courseData._id },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -243,7 +237,7 @@ const Coursedetails = () => {
                   <p>{calculateNoofLectures(courseData)}</p>
                 </div>
               </div>
-              <button onClick={enrollCourse} className='md:mt-6 mt-4 w-full py-3 round bg-blue-600 text-white font-medium cursor-pointer'>{isAlreadyEnrolled ? 'Already Enrolled' : 'Enroll Now'}</button>
+              <button id="enroll-button" onClick={enrollCourse} className='md:mt-6 mt-4 w-full py-3 round bg-blue-600 text-white font-medium cursor-pointer'>{isAlreadyEnrolled ? 'Already Enrolled' : 'Enroll Now'}</button>
               <div className='pt-6'>
                 <p className='md:text-xl text-lg font-medium text-gray-800'>What's in the course?</p>
                 <ul className='ml-4 pt-2 text-sm md:text-default list-disc text-gray-600'>
