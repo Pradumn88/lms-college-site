@@ -31,21 +31,25 @@ const Coursedetails = () => {
   const fetchCourseData = async () => {
     try {
       const response = await axios.get(backend + '/api/course/' + id);
-      if (typeof response.data === 'string' && response.data.startsWith('<!doctype html>')) {
-        toast.error('Course details API returned HTML. Backend route may be missing or misconfigured.');
+
+      // 🔄 New safe check to handle bad or unexpected responses
+      if (!response.data || typeof response.data !== 'object' || !response.data.success) {
+        toast.error('Invalid API response or course not found.');
         const fallbackCourse = allCourses?.find(c => c._id === id);
         if (fallbackCourse) setCourseData(fallbackCourse);
         return;
       }
+
       const data = response.data;
-      if (data && data.success && data.courseData) {
+
+      if (data.courseData) {
         setCourseData(data.courseData);
       } else {
         const fallbackCourse = allCourses?.find(c => c._id === id);
         if (fallbackCourse) {
           setCourseData(fallbackCourse);
         } else {
-          toast.error(data?.message || 'Course not found');
+          toast.error('Course not found');
         }
       }
     } catch (error) {
