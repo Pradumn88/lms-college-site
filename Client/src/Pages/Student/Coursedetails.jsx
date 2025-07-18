@@ -98,6 +98,35 @@ const Coursedetails = () => {
     }));
   };
 
+  // Safe function calls with fallbacks
+  const safeCalculateRatings = (course) => {
+    if (typeof calculateRatings === 'function') {
+      return calculateRatings(course);
+    }
+    return course?.courseRatings?.length || 0;
+  };
+
+  const safeCalculateCourseDuration = (course) => {
+    if (typeof calculateCourseDuration === 'function') {
+      return calculateCourseDuration(course);
+    }
+    return 'N/A';
+  };
+
+  const safeCalculateChapterTime = (chapter) => {
+    if (typeof calculateChapterTime === 'function') {
+      return calculateChapterTime(chapter);
+    }
+    return 'N/A';
+  };
+
+  const safeCalculateNoofLectures = (course) => {
+    if (typeof calculateNoofLectures === 'function') {
+      return calculateNoofLectures(course);
+    }
+    return course?.courseContent?.reduce((total, chapter) => total + (chapter?.chapterContent?.length || 0), 0) || 0;
+  };
+
   return courseData ? (
     <>
       <div className='flex md:flex-row flex-col-reverse gap-10 relative items-start justify-between md:px-36 px-8 md:pt-30 pt-20 text-left '>
@@ -109,10 +138,10 @@ const Coursedetails = () => {
           <p className='pt-4 md:text-base text-sm' dangerouslySetInnerHTML={{ __html: courseData.courseDescription?.slice(0, 200) }}></p>
           <p className='text-sm pt-5'>Course by <span className='text-gray-800 font-semibold'>{courseData.educator?.name}</span></p>
           <div className='flex items-center space-x-2 pt-3 pb-1 text-sm'>
-            <p>{calculateRatings(courseData)}</p>
+            <p>{safeCalculateRatings(courseData)}</p>
             <div className='flex'>
               {[...Array(5)].map((_, index) => (
-                <img key={index} src={index < Math.floor(calculateRatings(courseData)) ? assets.star : assets.star_blank} alt="star" className='w-3.5 h-3.5' />
+                <img key={index} src={index < Math.floor(safeCalculateRatings(courseData)) ? assets.star : assets.star_blank} alt="star" className='w-3.5 h-3.5' />
               ))}
             </div>
             <p className='text-gray-500'>
@@ -133,7 +162,7 @@ const Coursedetails = () => {
                       <p className='font-medium md:text-base text-sm'>{chapter.chapterTitle}</p>
                     </div>
                     <p className='text-sm md:text-default'>
-                      {chapter.chapterContent?.length || 0} lectures - {calculateChapterTime(chapter)}
+                      {chapter.chapterContent?.length || 0} lectures - {safeCalculateChapterTime(chapter)}
                     </p>
                   </div>
                   <div className={`overflow-hidden transition-all duration-300 ${openSections[index] ? 'max-h-96' : 'max-h-0'}`}>
@@ -188,17 +217,17 @@ const Coursedetails = () => {
             <div className='flex items-center text-sm md:text-default gap-4 pt-2 md:pt-4 text-gray-500'>
               <div className='flex items-center gap-1'>
                 <img src={assets.star} alt="" />
-                <p>{calculateRatings(courseData)}</p>
+                <p>{safeCalculateRatings(courseData)}</p>
               </div>
               <div className='h-4 w-px bg-gray-500/40'></div>
               <div className='flex items-center gap-1'>
                 <img src={assets.time_clock_icon} alt="" />
-                <p>{calculateCourseDuration(courseData)}</p>
+                <p>{safeCalculateCourseDuration(courseData)}</p>
               </div>
               <div className='h-4 w-px bg-gray-500/40'></div>
               <div className='flex items-center gap-1'>
                 <img src={assets.time_clock_icon} alt="" />
-                <p>{calculateNoofLectures(courseData)}</p>
+                <p>{safeCalculateNoofLectures(courseData)}</p>
               </div>
             </div>
             <button onClick={enrollCourse} className='md:mt-6 mt-4 w-full py-3 round bg-blue-600 text-white font-medium cursor-pointer'>
