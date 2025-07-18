@@ -8,14 +8,13 @@ import axios from 'axios';
 
 
 const StudentsEnrolled = () => {
-
-  const {backendUrl, getToken, isEducator} = useContext(AppContext)
+  const {backend, getToken, isEducator} = useContext(AppContext)
   const [enrolledStudents,setEnrolledStudents]= useState(null);
 
   const fetchEnrolledStudents = async()=>{
     try {
       const token = await getToken()
-      const { data } = await axios.get(backendUrl + '/api/educator/enrolled-students',{headers: {Authorization: `Bearer ${token}`}} )
+      const { data } = await axios.get(backend + '/api/educator/enrolled-students',{headers: {Authorization: `Bearer ${token}`}} )
       if(data.success){
         setEnrolledStudents(data.enrolledStudents.reverse())
       }
