@@ -5,7 +5,8 @@ const Footer = () => {
   return (
     <footer className='py-2 flex md:flex-row flex-col-reverse items-center justify-between text-left w-full px-8 border-t'>
       <div className='flex items-center gap-2'>
-        <img src={assets.logo} alt="logo" className='hidden md:block w-20' />
+        {/* <img src={assets.logo} alt="logo" className='hidden md:block w-20' /> */}
+        <h1 className='text-white text-2xl font-semibold '>AIM</h1>
         <div className='hidden md:block h-7 w-px bg-gray-500/60'></div>
         <p className='py-2 text-center text-xs md:text-sm text-gray-700'> Copyright 2025 &copy; AIM. All rights reserved</p>
       </div>
