@@ -11,9 +11,11 @@ const MyEnrollments = () => {
   const [loading, setLoading] = useState(true)
 
   const getCourseProgress = async () => {
+    if (!enrolledCourses || enrolledCourses.length === 0) {
+      setLoading(false);
+      return;
+    }
     try {
-      if (!enrolledCourses || enrolledCourses.length === 0) return;
-      
       const token = await getToken();
       const tempProgressArray = await Promise.all(
         enrolledCourses.map(async (course) => {
