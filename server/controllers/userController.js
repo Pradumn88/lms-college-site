@@ -57,6 +57,9 @@ export const purchaseCourse = async (req,res)=>{
         // Define origin from environment variable
         const origin = process.env.FRONTEND_URL;
 
+        // Initialize Stripe instance
+        const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+
         const currency = process.env.CURRENCY.toLowerCase();
 
         //creating line items for stripe
