@@ -53,23 +53,23 @@ export const purchaseCourse = async (req,res)=>{
 
         const newPurchase = await Purchase.create(purchaseData)
 
-        //stripe gateway initialization
-        const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY)
 
-        const currency = process.env.CURRENCY.toLowerCase()
+        // Define origin from environment variable
+        const origin = process.env.FRONTEND_URL;
 
-        //creating line items to for stripe
+        const currency = process.env.CURRENCY.toLowerCase();
 
+        //creating line items for stripe
         const line_items = [{
-            price_data:{
+            price_data: {
                 currency,
                 product_data: {
                     name: courseData.courseTitle
                 },
-                unit_amount: Math.floor(newPurchase.amount)*100
+                unit_amount: Math.floor(newPurchase.amount) * 100
             },
             quantity: 1
-        }]
+        }];
 
         const session = await stripeInstance.checkout.sessions.create({
             success_url: `${origin}/loading/my-enrollments`,
@@ -79,9 +79,9 @@ export const purchaseCourse = async (req,res)=>{
             metadata: {
                 purchaseId: newPurchase._id.toString()
             }
-        })
+        });
 
-        res.json({success: true, session_url: session.url})
+        res.json({ success: true, session_url: session.url });
 
     } catch (error) {
         res.json({success: false, message: error.message});
