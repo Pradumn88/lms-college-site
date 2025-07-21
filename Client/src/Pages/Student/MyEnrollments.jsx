@@ -1,33 +1,36 @@
+
 import React, { useContext, useState, useEffect } from 'react'
 import { AppContext } from '../../Context/AppContext'
-import {Line} from 'rc-progress'
+import { Line } from 'rc-progress'
 import Footer from '../../Components/Student/Footer'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 
 const MyEnrollments = () => {
-  const {enrolledCourses = [], calculateCourseDuration, navigate, userData, fetchUserEnrolledCourses, backendUrl, getToken, calculateNoOfLectures} = useContext(AppContext)
+  const { enrolledCourses = [], calculateCourseDuration, navigate, backend, getToken, calculateNoofLectures } = useContext(AppContext)
   const [progressArray, setProgressArray] = useState([])
   const [loading, setLoading] = useState(true)
 
   const getCourseProgress = async () => {
+    if (!enrolledCourses || enrolledCourses.length === 0) {
+      setLoading(false);
+      return;
+    }
     try {
-      if (!enrolledCourses || enrolledCourses.length === 0) return;
-      
       const token = await getToken();
       const tempProgressArray = await Promise.all(
         enrolledCourses.map(async (course) => {
           try {
-            const {data} = await axios.post(`${backendUrl}/api/user/get-course-progress`,
-              {courseId: course._id},
-              {headers: { Authorization: `Bearer ${token}`}}
+            const { data } = await axios.post(`${backend}/api/user/get-course-progress`,
+              { courseId: course._id },
+              { headers: { Authorization: `Bearer ${token}` } }
             );
-            const totalLectures = calculateNoOfLectures(course);
+            const totalLectures = calculateNoofLectures(course);
             const lecturesCompleted = data?.progressData?.lecturesCompleted?.length || 0;
-            return {totalLectures, lecturesCompleted};
+            return { totalLectures, lecturesCompleted };
           } catch (err) {
             console.error('Error fetching course progress:', err);
-            return {totalLectures: 0, lecturesCompleted: 0};
+            return { totalLectures: 0, lecturesCompleted: 0 };
           }
         })
       );
@@ -40,15 +43,9 @@ const MyEnrollments = () => {
   }
 
   useEffect(() => {
-    if (userData) {
-      fetchUserEnrolledCourses();
-    }
-  }, [userData]);
-
-  useEffect(() => {
-    if (enrolledCourses?.length > 0) {
-      getCourseProgress();
-    }
+    getCourseProgress();
+    // Only run when enrolledCourses changes
+    // eslint-disable-next-line
   }, [enrolledCourses]);
 
   if (loading) {

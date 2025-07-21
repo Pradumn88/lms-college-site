@@ -70,7 +70,7 @@ export const AppContextProvider = (props)=>{
 
     //Function to calculate the ratings of the course
     const calculateRatings=(course)=>{
-        if(course.courseRatings.length===0) return 0
+        if(!course?.courseRatings || course.courseRatings.length===0) return 0
         let totalRating=0;
         course.courseRatings.forEach(rating=>{
             totalRating+=rating.rating
@@ -80,6 +80,7 @@ export const AppContextProvider = (props)=>{
 
     // Function to calculate course chapter time
     const calculateChapterTime=(chapter)=>{
+        if(!chapter?.chapterContent) return '0m'
         let time=0;
         chapter.chapterContent.map((lecture)=>time+=lecture.lectureDuration)
         return humanizeDuration(time*60*1000,{units:['h','m']})
@@ -87,13 +88,14 @@ export const AppContextProvider = (props)=>{
 
     // Function to calculate course duration
     const calculateCourseDuration=(course)=>{
+        if(!course?.courseContent) return '0m'
         let time=0;
         course.courseContent.map((chapter)=> chapter.chapterContent.map((lecture)=>time+=lecture.lectureDuration))
         return humanizeDuration(time*60*1000,{units:['h','m']})
     }
 
-    //Function to calculate number of lectures in a course
-    const calculateNoOfLectures=(course)=>{
+    //Function to calculate number of lectures in a course (Fixed name to match usage)
+    const calculateNoofLectures=(course)=>{
         if (!course?.courseContent) return 0;
         let totalLectures=0;
         course.courseContent.forEach(chapter =>{
@@ -148,11 +150,11 @@ export const AppContextProvider = (props)=>{
         isEducator,
         setIsEducator,
         calculateChapterTime,
-        calculateNoOfLectures,  // Fixed the function name
+        calculateNoofLectures,  // Fixed to match the function name (lowercase 'o')
         calculateCourseDuration,
         enrolledCourses,
         fetchUserEnrolledCourses,
-        backendUrl,
+        backend: backendUrl,  // Added alias for backend
         userData,
         setUserData,
         getToken,

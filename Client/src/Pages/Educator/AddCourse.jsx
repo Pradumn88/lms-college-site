@@ -7,7 +7,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const AddCourse = () => {
-  const { backendUrl, getToken } = useContext(AppContext);
+  const { backend, getToken } = useContext(AppContext);
   const quillRef = useRef(null);
   const editorRef = useRef(null);
 
@@ -66,7 +66,7 @@ const AddCourse = () => {
     try {
       const token = await getToken();
       const { data } = await axios.post(
-        backendUrl + '/api/educator/add-course',
+        backend + '/api/educator/add-course',
         courseData,
         {
           headers: {
