@@ -164,7 +164,7 @@ const Coursedetails = () => {
         </div>
 
         {/* right column */}
-        <div className='max-w-course-card z-10 shadow rounded-t md:rounded-none overflow-hidden bg-white min-w-[300px] sm:min-w-[420px]'>
+        <div className='max-w-xs z-10 shadow rounded-t md:rounded-none overflow-hidden bg-white min-w-[220px] sm:min-w-[280px]'>
           {playerData
             ? <YouTube videoId={playerData.videoId} opts={{ playerVars: { autoplay: 1 } }} iframeClassName='w-full aspect-video' />
             : <img src={courseData.courseThumbnail} alt="" />

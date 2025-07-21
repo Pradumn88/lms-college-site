@@ -26,38 +26,3 @@ const Footer = () => {
 }
 
 export default Footer
-
-/*
-import React from 'react'
-import { assets } from '../../assets/assets'
-
-const Footer = () => {
-  return (
-    <footer className='flex md:flex-row flex-col-reverse items-center justify-between text-left w-full px-8 py-5 border-t bg-black'>
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-        
-        {/* Left Side: Logo + Copyright 
-        <div className="flex items-center gap-4 text-sm text-gray-400">
-          <img src={assets.logo} alt="logo" className="w-20" />
-          <span>© 2025 <span className="text-blue-400 font-semibold">AIM</span>. All rights reserved.</span>
-        </div>
-
-        {/* Right Side: Social Icons }
-        <div className="flex gap-4">
-          <a href="#" className="hover:text-blue-400 transition duration-300">
-            <img src={assets.facebook_icon} alt="Facebook" className="w-5 h-5" />
-          </a>
-          <a href="#" className="hover:text-pink-400 transition duration-300">
-            <img src={assets.instagram_icon} alt="Instagram" className="w-5 h-5" />
-          </a>
-          <a href="#" className="hover:text-sky-400 transition duration-300">
-            <img src={assets.twitter_icon} alt="Twitter" className="w-5 h-5" />
-          </a>
-        </div>
-      </div>
-    </footer>
-  )
-}
-
-export default Footer
-*/
