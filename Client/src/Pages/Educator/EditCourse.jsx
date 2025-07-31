@@ -177,7 +177,7 @@ const EditCourse = () => {
 
     try {
       const token = await getToken();
-      const { data } = await axios.patch(`${backend}/api/course/update/${id}`, payload, {
+      const { data } = await axios.put(`${backend}/api/course/update/${id}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
