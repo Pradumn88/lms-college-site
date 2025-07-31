@@ -1,86 +1,3 @@
-// import React, { useContext, useEffect, useState } from 'react'
-// import { AppContext } from '../../Context/AppContext'
-// import Loading from '../../Components/Student/Loading';
-// import axios from 'axios';
-
-// const MyCourses = () => {
-//   const {currency, backend, isEducator, getToken}= useContext(AppContext)
-
-//   const [courses, setCourses]=useState(null);
-
-//   const fetchEducatorCourse= async () =>{
-//     try {
-//       const token = await getToken()
-//       const { data } = await axios.get(backend+'/api/educator/courses',{headers: {Authorization: `Bearer ${token}`}})
-
-//       data.success && setCourses(data.courses)
-//     } catch (error) {
-//       toast.error(error.message)
-//     }
-//   }
-
-//   useEffect(()=>{
-//     if(isEducator){
-//       fetchEducatorCourse();
-//     }
-//   },[isEducator])
-
-//   const handleDelete = async (id) => {
-//   try {
-//     const token = await getToken();
-//     const { data } = await axios.delete(`${backend}/api/course/${id}`, {
-//       headers: { Authorization: `Bearer ${token}` },
-//     });
-
-//     if (data.success) {
-//       setCourses(prev => prev.filter(course => course._id !== id));
-//     } else {
-//       toast.error(data.message || 'Failed to delete course');
-//     }
-//   } catch (error) {
-//     toast.error(error.message);
-//   }
-// };
-
-//   return courses? (
-//     <div className='h-screen flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>
-//       <div className='w-full'>
-//         <h2 className='pb-4 text-lg font-medium'>My Courses</h2>
-//         <div className='flex flex-col items-center max-w-4xl w-full overflow-hidden rounded-md bg-white border border-gray-500/20'>
-//           <table className='md:table-auto table-fixed w-full overflow-hidden'>
-//             <thead className='text-gray-900 border-b border-gray-500/20 text-sm text-left'>
-//               <tr >
-//                 <th className='px-4 py-3 truncate font-semibold'>All Courses</th>
-//                 <th className='px-4 py-3 truncate font-semibold'>Earnings</th>
-//                 <th className='px-4 py-3 truncate font-semibold'>Students</th>
-//                 <th className='px-4 py-3 truncate font-semibold'>Published On</th>
-//               </tr>
-//             </thead>
-//             <tbody className='text-sm text-gray-500'>
-//               {courses.map((course)=>(
-//                 <tr key={course._id} className='border-b border-gray-500/20'>
-//                   <td className='md:px-4 pl-2 md:pl-4 py-3 flex items-center space-x-3 truncate'>
-//                     <img src={course.courseThumbnail} className='w-16' alt=" Course Image " />
-//                     <span className='truncate hidden md:block'>{course.courseTitle}</span>
-//                   </td>
-//                   <td className='px-4 py-3'>
-//                     {currency} {Math.floor(course.enrolledStudents.length * (course.coursePrice -course.discount * course.coursePrice/100))}
-//                   </td>
-//                   <td className='px-4 py-3'>{course.enrolledStudents.length}</td>
-//                   <td className='px-4 py-3'>{new Date(course.createdAt).toLocaleDateString()}</td>
-//                 </tr>
-//               ))}
-//             </tbody>
-//           </table>
-//         </div>
-//       </div>
-      
-//     </div>
-//   ) : <Loading/> 
-// }
-
-// export default MyCourses
-
 import React, { useContext, useEffect, useState } from 'react';
 import { AppContext } from '../../Context/AppContext';
 import Loading from '../../Components/Student/Loading';
@@ -91,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 const MyCourses = () => {
   const { currency, backend, isEducator, getToken } = useContext(AppContext);
   const [courses, setCourses] = useState(null);
+  const [search, setSearch] = useState('');
   const navigate = useNavigate();
 
   const fetchEducatorCourses = async () => {
@@ -133,10 +51,24 @@ const MyCourses = () => {
     }
   }, [isEducator]);
 
+  const filteredCourses = courses?.filter(course =>
+    course.courseTitle.toLowerCase().includes(search.toLowerCase())
+  );
+
   return courses ? (
     <div className='h-screen flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>
       <div className='w-full'>
-        <h2 className='pb-4 text-lg font-medium'>My Courses</h2>
+        <div className='flex justify-between items-center pb-4'>
+          <h2 className='text-lg font-medium'>My Courses</h2>
+          <input
+            type='text'
+            placeholder='Search courses...'
+            className='border border-gray-300 rounded px-3 py-1 w-64'
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
         <div className='flex flex-col items-center max-w-5xl w-full overflow-hidden rounded-md bg-white border border-gray-500/20'>
           <table className='md:table-auto table-fixed w-full overflow-hidden'>
             <thead className='text-gray-900 border-b border-gray-500/20 text-sm text-left'>
@@ -149,7 +81,7 @@ const MyCourses = () => {
               </tr>
             </thead>
             <tbody className='text-sm text-gray-700'>
-              {courses.map((course) => (
+              {filteredCourses.map((course) => (
                 <tr key={course._id} className='border-b border-gray-300'>
                   <td className='px-4 py-3 flex items-center space-x-3'>
                     <img src={course.courseThumbnail} className='w-16 rounded shadow' alt="Course" />
@@ -176,6 +108,11 @@ const MyCourses = () => {
                   </td>
                 </tr>
               ))}
+              {filteredCourses.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="text-center py-4 text-gray-500">No courses found</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -184,4 +121,4 @@ const MyCourses = () => {
   ) : <Loading />;
 };
 
-export default MyCourses; 
+export default MyCourses;
