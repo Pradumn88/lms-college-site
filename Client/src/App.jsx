@@ -1,6 +1,7 @@
 import React from 'react'
 import { Route, Routes, useMatch } from 'react-router-dom'
 import Home from "./Pages/Student/Home.jsx";
+import EditCourse from './Pages/Educator/EditCourse.jsx';
 import MyEnrollments from './Pages/Student/MyEnrollments.jsx'
 import CoursesList from './Pages/Student/CoursesList.jsx'
 import Coursedetails from './Pages/Student/Coursedetails.jsx'
@@ -39,6 +40,7 @@ const App = () => {
           <Route path='add-course' element={<AddCourse/>}/>
           <Route path='my-courses' element={<MyCourses/>}/>
           <Route path='students-enrolled' element={<StudentEnrolled/>}/>
+          <Route path='edit-course/:id' element={<EditCourse />} />
         </Route>
       </Routes>
     </div>
