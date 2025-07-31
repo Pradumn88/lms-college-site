@@ -1,3 +1,4 @@
+// Vercel-ready: This file is compatible with Vercel deployment
 import React from 'react'
 import { Route, Routes, useMatch } from 'react-router-dom'
 import Home from "./Pages/Student/Home.jsx";
