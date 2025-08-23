@@ -1,12 +1,13 @@
+// controllers/courseController.js
 import Course from "../models/course.js";
 import User from "../models/user.js";
 
-// 📌 get all courses (PUBLIC) → no enrolledStudents
+// ✅ Get all published courses
 export const getAllCourses = async (req, res) => {
   try {
     const courses = await Course.find({ isPublished: true })
-      .select(["-courseContent", "-enrolledStudents"]) // hide enrolledStudents for public
-      .populate({ path: "educator" });
+      .select(["-courseContent", "-enrolledStudents"])
+      .populate("educator");
 
     res.json({ success: true, courses });
   } catch (error) {
@@ -14,32 +15,17 @@ export const getAllCourses = async (req, res) => {
   }
 };
 
-// 📌 get educator’s own courses (DASHBOARD) → includes enrolledStudents
-export const getEducatorCourses = async (req, res) => {
-  try {
-    const educatorId = req.auth.userId; // Clerk userId
-    const courses = await Course.find({ educator: educatorId })
-      .select(["-courseContent"]) // keep enrolledStudents so educator can see
-      .populate({ path: "educator" });
-
-    res.json({ success: true, courses });
-  } catch (error) {
-    res.json({ success: false, message: error.message });
-  }
-};
-
-// 📌 get course by id
+// ✅ Get single course by ID
 export const getCourseId = async (req, res) => {
   const { id } = req.params;
-
   try {
-    const courseData = await Course.findById(id).populate({ path: "educator" });
+    const courseData = await Course.findById(id).populate("educator");
 
     if (!courseData) {
       return res.status(404).json({ success: false, message: "Course not found" });
     }
 
-    // Hide lectureUrl if not free preview
+    // Hide lecture URLs if not preview
     courseData.courseContent.forEach((chapter) => {
       chapter.chapterContent.forEach((lecture) => {
         if (!lecture.isPreviewFree) {
@@ -54,7 +40,7 @@ export const getCourseId = async (req, res) => {
   }
 };
 
-// 📌 create a new course
+// ✅ Create new course
 export const createCourse = async (req, res) => {
   try {
     const course = new Course(req.body);
@@ -65,7 +51,7 @@ export const createCourse = async (req, res) => {
   }
 };
 
-// 📌 update a course
+// ✅ Update course by ID
 export const updateCourse = async (req, res) => {
   const { id } = req.params;
   try {
@@ -79,7 +65,7 @@ export const updateCourse = async (req, res) => {
   }
 };
 
-// 📌 delete a course
+// ✅ Delete course by ID
 export const deleteCourse = async (req, res) => {
   const { id } = req.params;
   try {
@@ -93,13 +79,14 @@ export const deleteCourse = async (req, res) => {
   }
 };
 
-// 📌 enroll in a course
+// ✅ Enroll in a course
 export const enrollCourse = async (req, res) => {
   try {
-    const userId = req.auth.userId; // Clerk userId
+    const clerkId = req.auth.userId; // Clerk user ID
     const { courseId } = req.params;
 
-    const user = await User.findById(userId);
+    // Find user by clerkId instead of _id
+    const user = await User.findOne({ clerkId });
     const course = await Course.findById(courseId);
 
     if (!user || !course) {
@@ -112,7 +99,7 @@ export const enrollCourse = async (req, res) => {
     }
 
     user.enrolledCourses.push(courseId);
-    course.enrolledStudents.push(userId);
+    course.enrolledStudents.push(user._id); // Push Mongo _id reference
 
     await user.save();
     await course.save();
@@ -123,18 +110,35 @@ export const enrollCourse = async (req, res) => {
   }
 };
 
-// 📌 get my enrolled courses
+// ✅ Get my enrolled courses
 export const getMyEnrollments = async (req, res) => {
   try {
-    const userId = req.auth.userId;
+    const clerkId = req.auth.userId;
 
-    const user = await User.findById(userId).populate("enrolledCourses");
+    const user = await User.findOne({ clerkId }).populate("enrolledCourses");
 
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
     res.json({ success: true, enrolledCourses: user.enrolledCourses });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ✅ Get all courses of an educator
+export const getEducatorCourses = async (req, res) => {
+  try {
+    const clerkId = req.auth.userId;
+    const user = await User.findOne({ clerkId });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const courses = await Course.find({ educator: user._id });
+    res.json({ success: true, courses });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
