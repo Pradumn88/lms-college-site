@@ -9,25 +9,32 @@ import {
   getMyEnrollments,
 } from "../controllers/courseController.js";
 import { requireAuth } from "@clerk/express";
-
-// ⬅️ Import educator-specific controller
 import { getEducatorCourses } from "../controllers/educatorController.js";
 
 const courseRouter = express.Router();
 
-// 📌 Public + Course CRUD
+/**
+ * 📌 Order of routes matters!
+ * - Specific routes FIRST
+ * - Generic (/:id) LAST
+ */
+
+// ✅ Public: Fetch all courses
 courseRouter.get("/all", getAllCourses);
 
-// ⚠️ Put specific routes BEFORE generic ones
+// ✅ Enrollment routes (protected)
 courseRouter.get("/my-enrollments", requireAuth(), getMyEnrollments);
-courseRouter.get("/educator/courses", requireAuth(), getEducatorCourses);
-
-courseRouter.post("/", createCourse); // POST new course
-courseRouter.put("/:id", updateCourse); // PUT update course
-courseRouter.delete("/:id", deleteCourse); // DELETE course
 courseRouter.post("/:courseId/enroll", requireAuth(), enrollCourse);
 
-// Generic courseId route at the bottom ⬇️
+// ✅ Educator-specific routes (protected)
+courseRouter.get("/educator/courses", requireAuth(), getEducatorCourses);
+
+// ✅ Course CRUD (create/update/delete)
+courseRouter.post("/", createCourse);
+courseRouter.put("/:id", updateCourse);
+courseRouter.delete("/:id", deleteCourse);
+
+// ✅ Must be LAST: fetch course by ID
 courseRouter.get("/:id", getCourseId);
 
 export default courseRouter;

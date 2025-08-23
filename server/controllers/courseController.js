@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Course from "../models/course.js";
 import User from "../models/user.js";
 
@@ -5,29 +6,29 @@ import User from "../models/user.js";
 export const getAllCourses = async (req, res) => {
   try {
     const courses = await Course.find({ isPublished: true })
-      .select(["-courseContent", "-enrolledStudents"])
-      .populate({ path: "educator" });
+      .select(["-courseContent", "-enrolledStudents"]) // don’t send heavy fields
+      .populate("educator", "name email");
 
     res.json({ success: true, courses });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 // 📌 Get course by ID
 export const getCourseId = async (req, res) => {
   const { id } = req.params;
-
   try {
-    const courseData = await Course.findById(id).populate({ path: "educator" });
-
-    if (!courseData) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Course not found" });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid course ID" });
     }
 
-    // Hide non-preview lectures
+    const courseData = await Course.findById(id).populate("educator", "name email");
+    if (!courseData) {
+      return res.status(404).json({ success: false, message: "Course not found" });
+    }
+
+    // Hide lectureUrl unless preview
     courseData.courseContent.forEach((chapter) => {
       chapter.chapterContent.forEach((lecture) => {
         if (!lecture.isPreviewFree) {
@@ -38,7 +39,7 @@ export const getCourseId = async (req, res) => {
 
     res.json({ success: true, courseData });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -57,13 +58,13 @@ export const createCourse = async (req, res) => {
 export const updateCourse = async (req, res) => {
   const { id } = req.params;
   try {
-    const updatedCourse = await Course.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid course ID" });
+    }
+
+    const updatedCourse = await Course.findByIdAndUpdate(id, req.body, { new: true });
     if (!updatedCourse) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Course not found" });
+      return res.status(404).json({ success: false, message: "Course not found" });
     }
     res.json({ success: true, course: updatedCourse });
   } catch (error) {
@@ -75,11 +76,13 @@ export const updateCourse = async (req, res) => {
 export const deleteCourse = async (req, res) => {
   const { id } = req.params;
   try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid course ID" });
+    }
+
     const deletedCourse = await Course.findByIdAndDelete(id);
     if (!deletedCourse) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Course not found" });
+      return res.status(404).json({ success: false, message: "Course not found" });
     }
     res.json({ success: true, message: "Course deleted successfully" });
   } catch (error) {
@@ -93,7 +96,11 @@ export const enrollCourse = async (req, res) => {
     const userId = req.auth.userId; // Clerk string ID
     const { courseId } = req.params;
 
-    // Ensure user exists in DB (auto-create if missing)
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      return res.status(400).json({ success: false, message: "Invalid course ID" });
+    }
+
+    // Ensure user exists
     let user = await User.findById(userId);
     if (!user) {
       user = new User({
@@ -107,13 +114,11 @@ export const enrollCourse = async (req, res) => {
 
     const course = await Course.findById(courseId);
     if (!course) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Course not found" });
+      return res.status(404).json({ success: false, message: "Course not found" });
     }
 
     // Prevent duplicate enrollment
-    if (user.enrolledCourses.includes(courseId)) {
+    if (user.enrolledCourses.some(c => c.toString() === courseId)) {
       return res.json({ success: false, message: "Already enrolled" });
     }
 
@@ -134,9 +139,9 @@ export const getMyEnrollments = async (req, res) => {
   try {
     const userId = req.auth.userId;
 
-    // Ensure user exists in DB
     let user = await User.findById(userId).populate("enrolledCourses");
     if (!user) {
+      // auto-create Clerk user entry if missing
       user = new User({
         _id: userId,
         name: req.auth.sessionClaims?.name || "Anonymous",
@@ -147,7 +152,7 @@ export const getMyEnrollments = async (req, res) => {
       return res.json({ success: true, enrolledCourses: [] });
     }
 
-    res.json({ success: true, enrolledCourses: user.enrolledCourses });
+    res.json({ success: true, enrolledCourses: user.enrolledCourses || [] });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
