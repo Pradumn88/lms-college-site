@@ -1,39 +1,44 @@
 import mongoose from "mongoose";
 
-const lectureSchema =  new mongoose.Schema({
-    lectureId: {type: String, required: true},
-    lectureOrder: {type: Number , required: true},
-    lectureTitle: {type: String, required: true},
-    lectureDuration: {type: Number, required: true},
-    lectureUrl: {type: String, required: true},
-    isPreviewFree: {type: Boolean, required: true }
-}, {_id: false});
+const courseSchema = new mongoose.Schema(
+  {
+    courseTitle: { type: String, required: true },
+    courseDescription: { type: String, required: true },
+    courseThumbnail: { type: String },
+    price: { type: Number, default: 0 },
+    isPublished: { type: Boolean, default: false },
 
-const chapterSchema = new mongoose.Schema({
-    chapterId: {type: String, required: true},
-    chapterOrder: {type: Number, required: true},
-    chapterTitle: {type: String, required: true},
-    chapterContent: [lectureSchema]
-}, {_id: false});
+    // Educator reference
+    educator: {
+      type: String, // Clerk userId string
+      ref: "User",
+      required: true,
+    },
 
-const courseSchema = new mongoose.Schema({
-    courseTitle : {type : String, required : true},
-    courseDescription: {type: String, required: true},
-    courseThumbnail: {type: String},
-    coursePrice: {type: Number, required: true},
-    isPublished: {type: Boolean, default: true},
-    discount: {type: Number, required: true, min: 0,max: 100},
-    courseContent: [chapterSchema],
-    courseRatings: [
-        {userId: {type: String }, rating: {type: Number,min:1,max:5}}
+    // Chapters + Lectures
+    courseContent: [
+      {
+        chapterTitle: String,
+        chapterContent: [
+          {
+            lectureTitle: String,
+            lectureUrl: String,
+            isPreviewFree: { type: Boolean, default: false },
+          },
+        ],
+      },
     ],
-    educator: {type: String, ref: 'User', required: true},
+
+    // 📌 Store students enrolled by Clerk userId (string)
     enrolledStudents: [
-        {type: String, ref: 'User'}
+      {
+        type: String, // userId like "user_123"
+        ref: "User",
+      },
     ],
+  },
+  { timestamps: true }
+);
 
-}, {timestamps: true, minimize: false}) 
-
-const Course = mongoose.model('Course', courseSchema)
-
+const Course = mongoose.model("Course", courseSchema);
 export default Course;

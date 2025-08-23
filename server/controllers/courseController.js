@@ -22,7 +22,9 @@ export const getCourseId = async (req, res) => {
     const courseData = await Course.findById(id).populate({ path: "educator" });
 
     if (!courseData) {
-      return res.status(404).json({ success: false, message: "Course not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
     }
 
     // Hide non-preview lectures
@@ -40,7 +42,7 @@ export const getCourseId = async (req, res) => {
   }
 };
 
-// 📌 Create course
+// 📌 Create a new course
 export const createCourse = async (req, res) => {
   try {
     const course = new Course(req.body);
@@ -55,9 +57,13 @@ export const createCourse = async (req, res) => {
 export const updateCourse = async (req, res) => {
   const { id } = req.params;
   try {
-    const updatedCourse = await Course.findByIdAndUpdate(id, req.body, { new: true });
+    const updatedCourse = await Course.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
     if (!updatedCourse) {
-      return res.status(404).json({ success: false, message: "Course not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
     }
     res.json({ success: true, course: updatedCourse });
   } catch (error) {
@@ -71,7 +77,9 @@ export const deleteCourse = async (req, res) => {
   try {
     const deletedCourse = await Course.findByIdAndDelete(id);
     if (!deletedCourse) {
-      return res.status(404).json({ success: false, message: "Course not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
     }
     res.json({ success: true, message: "Course deleted successfully" });
   } catch (error) {
@@ -82,12 +90,12 @@ export const deleteCourse = async (req, res) => {
 // 📌 Enroll in course
 export const enrollCourse = async (req, res) => {
   try {
-    const userId = req.auth.userId; // Clerk string ID
+    const userId = req.auth.userId; // Clerk user ID (string like "user_123")
     const { courseId } = req.params;
 
-    console.log("➡️ Enroll request:", { userId, courseId });
+    console.log("➡️ Enroll attempt:", { userId, courseId });
 
-    // Ensure user exists in DB (auto-create if missing)
+    // Ensure user exists
     let user = await User.findById(userId);
     if (!user) {
       user = new User({
@@ -97,27 +105,28 @@ export const enrollCourse = async (req, res) => {
         imageUrl: req.auth.sessionClaims?.image || "",
       });
       await user.save();
-      console.log("✅ User created:", user);
     }
 
     const course = await Course.findById(courseId);
     if (!course) {
-      return res.status(404).json({ success: false, message: "Course not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
     }
 
-    // Prevent duplicate enrollment
-    if (user.enrolledCourses.includes(courseId)) {
+    // 🔑 Check by string, not ObjectId
+    if (user.enrolledCourses.some((id) => id.toString() === courseId.toString())) {
       return res.json({ success: false, message: "Already enrolled" });
     }
 
+    // Save both sides
     user.enrolledCourses.push(courseId);
     course.enrolledStudents.push(userId);
 
     await user.save();
     await course.save();
 
-    console.log("✅ Enrollment saved. User:", userId, "Course:", courseId);
-
+    console.log("✅ Enrolled successfully:", { userId, courseId });
     res.json({ success: true, message: "Enrolled successfully" });
   } catch (error) {
     console.error("❌ Enroll error:", error);
@@ -125,12 +134,12 @@ export const enrollCourse = async (req, res) => {
   }
 };
 
-// 📌 Get my enrollments
+// 📌 Get my enrolled courses
 export const getMyEnrollments = async (req, res) => {
   try {
     const userId = req.auth.userId;
-    console.log("➡️ Fetching enrollments for user:", userId);
 
+    // Ensure user exists in DB
     let user = await User.findById(userId).populate("enrolledCourses");
     if (!user) {
       user = new User({
@@ -140,15 +149,11 @@ export const getMyEnrollments = async (req, res) => {
         imageUrl: req.auth.sessionClaims?.image || "",
       });
       await user.save();
-      console.log("⚠️ User did not exist, created new:", userId);
       return res.json({ success: true, enrolledCourses: [] });
     }
 
-    console.log("✅ Enrolled courses fetched:", user.enrolledCourses.length);
-
     res.json({ success: true, enrolledCourses: user.enrolledCourses });
   } catch (error) {
-    console.error("❌ getMyEnrollments error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
