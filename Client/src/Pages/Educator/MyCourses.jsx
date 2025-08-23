@@ -10,14 +10,14 @@ const MyCourses = () => {
   const [courses, setCourses] = useState(null);
   const navigate = useNavigate();
 
-  const fetchCourses = async () => {
+  const fetchEducatorCourses = async () => {
     try {
       const token = await getToken();
-      const { data } = await axios.get(`${backend}/api/course/all`, {
+      const { data } = await axios.get(`${backend}/api/course/educator/courses`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (data.success) {
-        setCourses(data.courses);
+        setCourses(data.courses || []);
       }
     } catch (error) {
       toast.error(error.message);
@@ -35,7 +35,7 @@ const MyCourses = () => {
       });
       if (data.success) {
         toast.success('Course deleted');
-        fetchCourses();
+        fetchEducatorCourses();
       } else {
         toast.error(data.message || 'Failed to delete');
       }
@@ -46,11 +46,13 @@ const MyCourses = () => {
 
   useEffect(() => {
     if (isEducator) {
-      fetchCourses();
+      fetchEducatorCourses();
     }
   }, [isEducator]);
 
-  return courses ? (
+  if (!courses) return <Loading />;
+
+  return (
     <div className='h-screen flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>
       <div className='w-full'>
         <h2 className='pb-4 text-lg font-medium'>My Courses</h2>
@@ -66,39 +68,50 @@ const MyCourses = () => {
               </tr>
             </thead>
             <tbody className='text-sm text-gray-700'>
-              {courses.map((course) => (
-                <tr key={course._id} className='border-b border-gray-300'>
-                  <td className='px-4 py-3 flex items-center space-x-3'>
-                    <img src={course.courseThumbnail} className='w-16 rounded shadow' alt="Course" />
-                    <span className='truncate'>{course.courseTitle}</span>
-                  </td>
-                  <td className='px-4 py-3'>
-                    {currency} {Math.floor(course.enrolledStudents.length * (course.coursePrice - course.discount * course.coursePrice / 100))}
-                  </td>
-                  <td className='px-4 py-3'>{course.enrolledStudents.length}</td>
-                  <td className='px-4 py-3'>{course.isPublished ? 'Yes' : 'No'}</td>
-                  <td className='px-4 py-3 flex space-x-2'>
-                    <button
-                      onClick={() => navigate(`/educator/edit-course/${course._id}`)}
-                      className='px-3 py-1 text-white bg-blue-500 rounded hover:bg-blue-600'
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => deleteCourse(course._id)}
-                      className='px-3 py-1 text-white bg-red-500 rounded hover:bg-red-600'
-                    >
-                      Delete
-                    </button>
+              {courses.length > 0 ? (
+                courses.map((course) => {
+                  const studentsCount = course.enrolledStudents ? course.enrolledStudents.length : 0;
+                  const earnings = studentsCount * (course.coursePrice - (course.discount * course.coursePrice) / 100);
+
+                  return (
+                    <tr key={course._id} className='border-b border-gray-300'>
+                      <td className='px-4 py-3 flex items-center space-x-3'>
+                        <img src={course.courseThumbnail} className='w-16 rounded shadow' alt="Course" />
+                        <span className='truncate'>{course.courseTitle}</span>
+                      </td>
+                      <td className='px-4 py-3'>{currency} {Math.floor(earnings)}</td>
+                      <td className='px-4 py-3'>{studentsCount}</td>
+                      <td className='px-4 py-3'>{course.isPublished ? 'Yes' : 'No'}</td>
+                      <td className='px-4 py-3 flex space-x-2'>
+                        <button
+                          onClick={() => navigate(`/educator/edit-course/${course._id}`)}
+                          className='px-3 py-1 text-white bg-blue-500 rounded hover:bg-blue-600'
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteCourse(course._id)}
+                          className='px-3 py-1 text-white bg-red-500 rounded hover:bg-red-600'
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="5" className="text-center py-6 text-gray-500">
+                    No courses found
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
       </div>
     </div>
-  ) : <Loading />;
+  );
 };
 
 export default MyCourses;
