@@ -1,13 +1,12 @@
-// controllers/courseController.js
 import Course from "../models/course.js";
 import User from "../models/user.js";
 
-// ✅ Get all published courses
+// 📌 Get all published courses
 export const getAllCourses = async (req, res) => {
   try {
     const courses = await Course.find({ isPublished: true })
       .select(["-courseContent", "-enrolledStudents"])
-      .populate("educator");
+      .populate({ path: "educator" });
 
     res.json({ success: true, courses });
   } catch (error) {
@@ -15,17 +14,17 @@ export const getAllCourses = async (req, res) => {
   }
 };
 
-// ✅ Get single course by ID
+// 📌 Get course by ID
 export const getCourseId = async (req, res) => {
   const { id } = req.params;
   try {
-    const courseData = await Course.findById(id).populate("educator");
+    const courseData = await Course.findById(id).populate({ path: "educator" });
 
     if (!courseData) {
       return res.status(404).json({ success: false, message: "Course not found" });
     }
 
-    // Hide lecture URLs if not preview
+    // Hide lecture URLs if not free preview
     courseData.courseContent.forEach((chapter) => {
       chapter.chapterContent.forEach((lecture) => {
         if (!lecture.isPreviewFree) {
@@ -40,7 +39,7 @@ export const getCourseId = async (req, res) => {
   }
 };
 
-// ✅ Create new course
+// 📌 Create new course
 export const createCourse = async (req, res) => {
   try {
     const course = new Course(req.body);
@@ -51,7 +50,7 @@ export const createCourse = async (req, res) => {
   }
 };
 
-// ✅ Update course by ID
+// 📌 Update course
 export const updateCourse = async (req, res) => {
   const { id } = req.params;
   try {
@@ -65,7 +64,7 @@ export const updateCourse = async (req, res) => {
   }
 };
 
-// ✅ Delete course by ID
+// 📌 Delete course
 export const deleteCourse = async (req, res) => {
   const { id } = req.params;
   try {
@@ -79,14 +78,13 @@ export const deleteCourse = async (req, res) => {
   }
 };
 
-// ✅ Enroll in a course
+// 📌 Enroll in a course
 export const enrollCourse = async (req, res) => {
   try {
-    const clerkId = req.auth.userId; // Clerk user ID
+    const userId = req.auth.userId; // Clerk userId
     const { courseId } = req.params;
 
-    // Find user by clerkId instead of _id
-    const user = await User.findOne({ clerkId });
+    const user = await User.findOne({ clerkId: userId });
     const course = await Course.findById(courseId);
 
     if (!user || !course) {
@@ -99,7 +97,7 @@ export const enrollCourse = async (req, res) => {
     }
 
     user.enrolledCourses.push(courseId);
-    course.enrolledStudents.push(user._id); // Push Mongo _id reference
+    course.enrolledStudents.push(user._id); // store Mongo _id
 
     await user.save();
     await course.save();
@@ -110,12 +108,12 @@ export const enrollCourse = async (req, res) => {
   }
 };
 
-// ✅ Get my enrolled courses
+// 📌 Get my enrolled courses
 export const getMyEnrollments = async (req, res) => {
   try {
-    const clerkId = req.auth.userId;
+    const userId = req.auth.userId;
 
-    const user = await User.findOne({ clerkId }).populate("enrolledCourses");
+    const user = await User.findOne({ clerkId: userId }).populate("enrolledCourses");
 
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
@@ -127,17 +125,18 @@ export const getMyEnrollments = async (req, res) => {
   }
 };
 
-// ✅ Get all courses of an educator
+// 📌 Get courses created by current educator
 export const getEducatorCourses = async (req, res) => {
   try {
-    const clerkId = req.auth.userId;
-    const user = await User.findOne({ clerkId });
+    const userId = req.auth.userId;
+    const educator = await User.findOne({ clerkId: userId });
 
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+    if (!educator) {
+      return res.status(404).json({ success: false, message: "Educator not found" });
     }
 
-    const courses = await Course.find({ educator: user._id });
+    const courses = await Course.find({ educator: educator._id });
+
     res.json({ success: true, courses });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
