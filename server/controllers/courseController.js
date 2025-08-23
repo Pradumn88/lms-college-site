@@ -17,14 +17,17 @@ export const getAllCourses = async (req, res) => {
 // 📌 Get course by ID
 export const getCourseId = async (req, res) => {
   const { id } = req.params;
+
   try {
     const courseData = await Course.findById(id).populate({ path: "educator" });
 
     if (!courseData) {
-      return res.status(404).json({ success: false, message: "Course not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
     }
 
-    // Hide lecture URLs if not free preview
+    // Hide non-preview lectures
     courseData.courseContent.forEach((chapter) => {
       chapter.chapterContent.forEach((lecture) => {
         if (!lecture.isPreviewFree) {
@@ -39,7 +42,7 @@ export const getCourseId = async (req, res) => {
   }
 };
 
-// 📌 Create new course
+// 📌 Create a new course
 export const createCourse = async (req, res) => {
   try {
     const course = new Course(req.body);
@@ -54,9 +57,13 @@ export const createCourse = async (req, res) => {
 export const updateCourse = async (req, res) => {
   const { id } = req.params;
   try {
-    const updatedCourse = await Course.findByIdAndUpdate(id, req.body, { new: true });
+    const updatedCourse = await Course.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
     if (!updatedCourse) {
-      return res.status(404).json({ success: false, message: "Course not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
     }
     res.json({ success: true, course: updatedCourse });
   } catch (error) {
@@ -70,7 +77,9 @@ export const deleteCourse = async (req, res) => {
   try {
     const deletedCourse = await Course.findByIdAndDelete(id);
     if (!deletedCourse) {
-      return res.status(404).json({ success: false, message: "Course not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
     }
     res.json({ success: true, message: "Course deleted successfully" });
   } catch (error) {
@@ -78,17 +87,29 @@ export const deleteCourse = async (req, res) => {
   }
 };
 
-// 📌 Enroll in a course
+// 📌 Enroll in course
 export const enrollCourse = async (req, res) => {
   try {
-    const userId = req.auth.userId; // Clerk userId
+    const userId = req.auth.userId; // Clerk string ID
     const { courseId } = req.params;
 
-    const user = await User.findOne({ clerkId: userId });
-    const course = await Course.findById(courseId);
+    // Ensure user exists in DB (auto-create if missing)
+    let user = await User.findById(userId);
+    if (!user) {
+      user = new User({
+        _id: userId,
+        name: req.auth.sessionClaims?.name || "Anonymous",
+        email: req.auth.sessionClaims?.email || "",
+        imageUrl: req.auth.sessionClaims?.image || "",
+      });
+      await user.save();
+    }
 
-    if (!user || !course) {
-      return res.status(404).json({ success: false, message: "User or Course not found" });
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
     }
 
     // Prevent duplicate enrollment
@@ -97,7 +118,7 @@ export const enrollCourse = async (req, res) => {
     }
 
     user.enrolledCourses.push(courseId);
-    course.enrolledStudents.push(user._id); // store Mongo _id
+    course.enrolledStudents.push(userId);
 
     await user.save();
     await course.save();
@@ -113,31 +134,20 @@ export const getMyEnrollments = async (req, res) => {
   try {
     const userId = req.auth.userId;
 
-    const user = await User.findOne({ clerkId: userId }).populate("enrolledCourses");
-
+    // Ensure user exists in DB
+    let user = await User.findById(userId).populate("enrolledCourses");
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      user = new User({
+        _id: userId,
+        name: req.auth.sessionClaims?.name || "Anonymous",
+        email: req.auth.sessionClaims?.email || "",
+        imageUrl: req.auth.sessionClaims?.image || "",
+      });
+      await user.save();
+      return res.json({ success: true, enrolledCourses: [] });
     }
 
     res.json({ success: true, enrolledCourses: user.enrolledCourses });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// 📌 Get courses created by current educator
-export const getEducatorCourses = async (req, res) => {
-  try {
-    const userId = req.auth.userId;
-    const educator = await User.findOne({ clerkId: userId });
-
-    if (!educator) {
-      return res.status(404).json({ success: false, message: "Educator not found" });
-    }
-
-    const courses = await Course.find({ educator: educator._id });
-
-    res.json({ success: true, courses });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -7,24 +7,26 @@ import {
   deleteCourse,
   enrollCourse,
   getMyEnrollments,
-  getEducatorCourses,   // ✅ import from courseController.js, not educatorController.js
 } from "../controllers/courseController.js";
 import { requireAuth } from "@clerk/express";
 
+// Educator-specific controller
+import { getEducatorCourses } from "../controllers/educatorController.js";
+
 const courseRouter = express.Router();
 
-// 📌 Public + Course CRUD
+// 📌 Public + CRUD
 courseRouter.get("/all", getAllCourses);
 courseRouter.get("/:id", getCourseId);
 courseRouter.post("/", createCourse);
 courseRouter.put("/:id", updateCourse);
 courseRouter.delete("/:id", deleteCourse);
 
-// 📌 Enrollment routes
+// 📌 Enrollment
 courseRouter.post("/:courseId/enroll", requireAuth(), enrollCourse);
 courseRouter.get("/my-enrollments", requireAuth(), getMyEnrollments);
 
-// 📌 Educator’s courses (frontend expects this endpoint)
+// 📌 Educator courses
 courseRouter.get("/educator/courses", requireAuth(), getEducatorCourses);
 
 export default courseRouter;
