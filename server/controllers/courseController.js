@@ -1,11 +1,11 @@
 import Course from "../models/course.js";
 import User from "../models/user.js";
 
-// get all courses
+// 📌 get all courses (PUBLIC) → no enrolledStudents
 export const getAllCourses = async (req, res) => {
   try {
     const courses = await Course.find({ isPublished: true })
-      .select(["-courseContent", "-enrolledStudents"])
+      .select(["-courseContent", "-enrolledStudents"]) // hide enrolledStudents for public
       .populate({ path: "educator" });
 
     res.json({ success: true, courses });
@@ -14,7 +14,21 @@ export const getAllCourses = async (req, res) => {
   }
 };
 
-// get course by id
+// 📌 get educator’s own courses (DASHBOARD) → includes enrolledStudents
+export const getEducatorCourses = async (req, res) => {
+  try {
+    const educatorId = req.auth.userId; // Clerk userId
+    const courses = await Course.find({ educator: educatorId })
+      .select(["-courseContent"]) // keep enrolledStudents so educator can see
+      .populate({ path: "educator" });
+
+    res.json({ success: true, courses });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// 📌 get course by id
 export const getCourseId = async (req, res) => {
   const { id } = req.params;
 
@@ -22,12 +36,10 @@ export const getCourseId = async (req, res) => {
     const courseData = await Course.findById(id).populate({ path: "educator" });
 
     if (!courseData) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Course not found" });
+      return res.status(404).json({ success: false, message: "Course not found" });
     }
 
-    // Remove lectureUrl if isPreviewFree is false
+    // Hide lectureUrl if not free preview
     courseData.courseContent.forEach((chapter) => {
       chapter.chapterContent.forEach((lecture) => {
         if (!lecture.isPreviewFree) {
@@ -35,13 +47,14 @@ export const getCourseId = async (req, res) => {
         }
       });
     });
+
     res.json({ success: true, courseData });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
 };
 
-// create a new course
+// 📌 create a new course
 export const createCourse = async (req, res) => {
   try {
     const course = new Course(req.body);
@@ -52,17 +65,13 @@ export const createCourse = async (req, res) => {
   }
 };
 
-// update an existing course by ID
+// 📌 update a course
 export const updateCourse = async (req, res) => {
   const { id } = req.params;
   try {
-    const updatedCourse = await Course.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
+    const updatedCourse = await Course.findByIdAndUpdate(id, req.body, { new: true });
     if (!updatedCourse) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Course not found" });
+      return res.status(404).json({ success: false, message: "Course not found" });
     }
     res.json({ success: true, course: updatedCourse });
   } catch (error) {
@@ -70,15 +79,13 @@ export const updateCourse = async (req, res) => {
   }
 };
 
-// delete a course by ID
+// 📌 delete a course
 export const deleteCourse = async (req, res) => {
   const { id } = req.params;
   try {
     const deletedCourse = await Course.findByIdAndDelete(id);
     if (!deletedCourse) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Course not found" });
+      return res.status(404).json({ success: false, message: "Course not found" });
     }
     res.json({ success: true, message: "Course deleted successfully" });
   } catch (error) {
@@ -96,9 +103,7 @@ export const enrollCourse = async (req, res) => {
     const course = await Course.findById(courseId);
 
     if (!user || !course) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User or Course not found" });
+      return res.status(404).json({ success: false, message: "User or Course not found" });
     }
 
     // Prevent duplicate enrollment
@@ -126,9 +131,7 @@ export const getMyEnrollments = async (req, res) => {
     const user = await User.findById(userId).populate("enrolledCourses");
 
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
     res.json({ success: true, enrolledCourses: user.enrolledCourses });
