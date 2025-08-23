@@ -13,28 +13,19 @@ import { getEducatorCourses } from "../controllers/educatorController.js";
 
 const courseRouter = express.Router();
 
-/**
- * 📌 Order of routes matters!
- * - Specific routes FIRST
- * - Generic (/:id) LAST
- */
-
-// ✅ Public: Fetch all courses
+// Public routes
 courseRouter.get("/all", getAllCourses);
 
-// ✅ Enrollment routes (protected)
+// Auth routes
 courseRouter.get("/my-enrollments", requireAuth(), getMyEnrollments);
-courseRouter.post("/:courseId/enroll", requireAuth(), enrollCourse);
-
-// ✅ Educator-specific routes (protected)
 courseRouter.get("/educator/courses", requireAuth(), getEducatorCourses);
 
-// ✅ Course CRUD (create/update/delete)
 courseRouter.post("/", createCourse);
 courseRouter.put("/:id", updateCourse);
 courseRouter.delete("/:id", deleteCourse);
+courseRouter.post("/:courseId/enroll", requireAuth(), enrollCourse);
 
-// ✅ Must be LAST: fetch course by ID
+// Keep this last
 courseRouter.get("/:id", getCourseId);
 
 export default courseRouter;
