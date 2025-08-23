@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import Course from "../models/course.js";
 import User from "../models/user.js";
 
@@ -6,29 +5,27 @@ import User from "../models/user.js";
 export const getAllCourses = async (req, res) => {
   try {
     const courses = await Course.find({ isPublished: true })
-      .select(["-courseContent", "-enrolledStudents"]) // don’t send heavy fields
-      .populate("educator", "name email");
+      .select(["-courseContent", "-enrolledStudents"])
+      .populate({ path: "educator" });
 
     res.json({ success: true, courses });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.json({ success: false, message: error.message });
   }
 };
 
 // 📌 Get course by ID
 export const getCourseId = async (req, res) => {
   const { id } = req.params;
-  try {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ success: false, message: "Invalid course ID" });
-    }
 
-    const courseData = await Course.findById(id).populate("educator", "name email");
+  try {
+    const courseData = await Course.findById(id).populate({ path: "educator" });
+
     if (!courseData) {
       return res.status(404).json({ success: false, message: "Course not found" });
     }
 
-    // Hide lectureUrl unless preview
+    // Hide non-preview lectures
     courseData.courseContent.forEach((chapter) => {
       chapter.chapterContent.forEach((lecture) => {
         if (!lecture.isPreviewFree) {
@@ -39,11 +36,11 @@ export const getCourseId = async (req, res) => {
 
     res.json({ success: true, courseData });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.json({ success: false, message: error.message });
   }
 };
 
-// 📌 Create a new course
+// 📌 Create course
 export const createCourse = async (req, res) => {
   try {
     const course = new Course(req.body);
@@ -58,10 +55,6 @@ export const createCourse = async (req, res) => {
 export const updateCourse = async (req, res) => {
   const { id } = req.params;
   try {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ success: false, message: "Invalid course ID" });
-    }
-
     const updatedCourse = await Course.findByIdAndUpdate(id, req.body, { new: true });
     if (!updatedCourse) {
       return res.status(404).json({ success: false, message: "Course not found" });
@@ -76,10 +69,6 @@ export const updateCourse = async (req, res) => {
 export const deleteCourse = async (req, res) => {
   const { id } = req.params;
   try {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ success: false, message: "Invalid course ID" });
-    }
-
     const deletedCourse = await Course.findByIdAndDelete(id);
     if (!deletedCourse) {
       return res.status(404).json({ success: false, message: "Course not found" });
@@ -96,11 +85,9 @@ export const enrollCourse = async (req, res) => {
     const userId = req.auth.userId; // Clerk string ID
     const { courseId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(courseId)) {
-      return res.status(400).json({ success: false, message: "Invalid course ID" });
-    }
+    console.log("➡️ Enroll request:", { userId, courseId });
 
-    // Ensure user exists
+    // Ensure user exists in DB (auto-create if missing)
     let user = await User.findById(userId);
     if (!user) {
       user = new User({
@@ -110,6 +97,7 @@ export const enrollCourse = async (req, res) => {
         imageUrl: req.auth.sessionClaims?.image || "",
       });
       await user.save();
+      console.log("✅ User created:", user);
     }
 
     const course = await Course.findById(courseId);
@@ -118,7 +106,7 @@ export const enrollCourse = async (req, res) => {
     }
 
     // Prevent duplicate enrollment
-    if (user.enrolledCourses.some(c => c.toString() === courseId)) {
+    if (user.enrolledCourses.includes(courseId)) {
       return res.json({ success: false, message: "Already enrolled" });
     }
 
@@ -128,20 +116,23 @@ export const enrollCourse = async (req, res) => {
     await user.save();
     await course.save();
 
+    console.log("✅ Enrollment saved. User:", userId, "Course:", courseId);
+
     res.json({ success: true, message: "Enrolled successfully" });
   } catch (error) {
+    console.error("❌ Enroll error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// 📌 Get my enrolled courses
+// 📌 Get my enrollments
 export const getMyEnrollments = async (req, res) => {
   try {
     const userId = req.auth.userId;
+    console.log("➡️ Fetching enrollments for user:", userId);
 
     let user = await User.findById(userId).populate("enrolledCourses");
     if (!user) {
-      // auto-create Clerk user entry if missing
       user = new User({
         _id: userId,
         name: req.auth.sessionClaims?.name || "Anonymous",
@@ -149,11 +140,15 @@ export const getMyEnrollments = async (req, res) => {
         imageUrl: req.auth.sessionClaims?.image || "",
       });
       await user.save();
+      console.log("⚠️ User did not exist, created new:", userId);
       return res.json({ success: true, enrolledCourses: [] });
     }
 
-    res.json({ success: true, enrolledCourses: user.enrolledCourses || [] });
+    console.log("✅ Enrolled courses fetched:", user.enrolledCourses.length);
+
+    res.json({ success: true, enrolledCourses: user.enrolledCourses });
   } catch (error) {
+    console.error("❌ getMyEnrollments error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
