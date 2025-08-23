@@ -24,7 +24,7 @@ const EditCourse = () => {
   const fetchCourseDetails = async () => {
     try {
       const token = await getToken();
-      const { data } = await axios.get(`${backend}/api/course/${id}`, {
+      const { data } = await axios.get(`${backend}/api/courses/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (data.success) {
@@ -59,7 +59,7 @@ const EditCourse = () => {
     e.preventDefault();
     try {
       const token = await getToken();
-      const { data } = await axios.patch(`${backend}/api/course/update/${id}`, formData, {
+      const { data } = await axios.put(`${backend}/api/courses/${id}`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (data.success) {

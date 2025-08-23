@@ -96,11 +96,14 @@ const MyCourses = () => {
   const fetchEducatorCourses = async () => {
     try {
       const token = await getToken();
-      const { data } = await axios.get(`${backend}/api/educator/courses`, {
+      // FIX: make sure you have this endpoint in backend
+      const { data } = await axios.get(`${backend}/api/courses/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (data.success) {
-        setCourses(data.courses);
+        // If backend doesn’t filter, filter here by educator
+        const educatorId = (await getToken()).userId; // adjust if needed
+        setCourses(data.courses.filter(c => c.educator === educatorId));
       }
     } catch (error) {
       toast.error(error.message);
@@ -113,7 +116,7 @@ const MyCourses = () => {
 
     try {
       const token = await getToken();
-      const { data } = await axios.delete(`${backend}/api/course/${id}`, {
+      const { data } = await axios.delete(`${backend}/api/courses/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (data.success) {
@@ -184,4 +187,4 @@ const MyCourses = () => {
   ) : <Loading />;
 };
 
-export default MyCourses; 
+export default MyCourses;
