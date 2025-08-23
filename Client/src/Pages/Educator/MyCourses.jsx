@@ -10,11 +10,10 @@ const MyCourses = () => {
   const [courses, setCourses] = useState(null);
   const navigate = useNavigate();
 
-  const fetchEducatorCourses = async () => {
+  const fetchCourses = async () => {
     try {
       const token = await getToken();
-      // ✅ use correct endpoint
-      const { data } = await axios.get(`${backend}/api/educator/courses`, {
+      const { data } = await axios.get(`${backend}/api/course/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (data.success) {
@@ -31,12 +30,12 @@ const MyCourses = () => {
 
     try {
       const token = await getToken();
-      const { data } = await axios.delete(`${backend}/api/courses/${id}`, {
+      const { data } = await axios.delete(`${backend}/api/course/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (data.success) {
         toast.success('Course deleted');
-        fetchEducatorCourses();
+        fetchCourses();
       } else {
         toast.error(data.message || 'Failed to delete');
       }
@@ -47,7 +46,7 @@ const MyCourses = () => {
 
   useEffect(() => {
     if (isEducator) {
-      fetchEducatorCourses();
+      fetchCourses();
     }
   }, [isEducator]);
 
