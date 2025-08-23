@@ -12,13 +12,14 @@ const MyEnrollments = () => {
   const [progressArray, setProgressArray] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // 📌 Fetch my enrolled courses from backend
   const fetchMyEnrollments = async () => {
     try {
       const token = await getToken()
       const { data } = await axios.get(`${backend}/api/course/my-enrollments`, {
         headers: { Authorization: `Bearer ${token}` },
       })
+
+      console.log("📌 My Enrollments response:", data)
 
       if (data.success) {
         setEnrolledCourses(data.enrolledCourses || [])
@@ -30,7 +31,6 @@ const MyEnrollments = () => {
     }
   }
 
-  // 📌 Fetch progress for each enrolled course
   const getCourseProgress = async (courses) => {
     if (!courses || courses.length === 0) {
       setLoading(false)
@@ -63,7 +63,6 @@ const MyEnrollments = () => {
     }
   }
 
-  // 📌 Run once on mount
   useEffect(() => {
     const init = async () => {
       await fetchMyEnrollments()
@@ -71,10 +70,11 @@ const MyEnrollments = () => {
     init()
   }, [])
 
-  // 📌 When enrolledCourses update, fetch progress
   useEffect(() => {
     if (enrolledCourses.length > 0) {
       getCourseProgress(enrolledCourses)
+    } else {
+      setLoading(false)
     }
   }, [enrolledCourses])
 
