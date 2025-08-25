@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { AppContext } from '../../Context/AppContext';
+import { AppContext } from '../../Context/AppContext'
 import Loading from '../../Components/Student/Loading';
 import { assets } from '../../assets/assets';
 import humanizeDuration from 'humanize-duration';
@@ -41,9 +41,9 @@ const Coursedetails = () => {
   const {allCourses,calculateRatings,calculateCourseDuration,calculateChapterTime,calculateNoofLectures,currency,backend , userData, getToken}= useContext(AppContext)
   const [courseData,setCourseData] = useState(null)
   const [openSections,setOpenSections] = useState({})
-  const [isAlreadyEnrolled,setIsAlreadyEnrolled] = useState(false)
-  const [playerData,setPlayerData] = useState(null)
-
+  const [isAlreadyEnrolled,setIsAlreadyEnrolled] = useState(false);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
+  const [completedLectures, setCompletedLectures] = useState(new Set());
 
 
   const fetchCourseData= async()=>{
@@ -152,16 +152,108 @@ const Coursedetails = () => {
   }
 };
 
+const markLectureAsCompleted = async (lectureId) => {
+  if (!isAlreadyEnrolled || completedLectures.has(lectureId)) {
+    return; // Don't do anything if not enrolled or already completed
+  }
+  try {
+    const token = await getToken();
+    if (!token) return; // Silently fail if not logged in
+
+    const response = await axios.post(
+      `${backend}/api/user/update-progress`,
+      { courseId: courseData._id, lectureId },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (response.data.success) {
+      setCompletedLectures(prev => new Set(prev).add(lectureId));
+    }
+  } catch (error) {
+    console.error("Failed to mark lecture as completed", error);
+  }
+};
+
+const handleLectureClick = (chapterIndex, lectureIndex) => {
+  if (!courseData) return;
+  const lecture = courseData.courseContent[chapterIndex]?.chapterContent[lectureIndex];
+  if (!lecture) return;
+
+  if (isAlreadyEnrolled || lecture.isPreviewFree) {
+      const videoId = getYouTubeVideoId(lecture.lectureUrl);
+      if (videoId) {
+          setCurrentlyPlaying({
+              videoId,
+              chapterIndex,
+              lectureIndex,
+              title: lecture.lectureTitle
+          });
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+          toast.error("Could not find a valid video for this lecture.");
+      }
+  } else {
+      toast.info("Please enroll in the course to watch this lecture.");
+  }
+};
+
+const playNextLecture = () => {
+  if (!courseData || !currentlyPlaying) return;
+
+  // Mark the lecture that just ended as completed
+  const { chapterIndex: prevChapterIndex, lectureIndex: prevLectureIndex } = currentlyPlaying;
+  const finishedLecture = courseData.courseContent[prevChapterIndex]?.chapterContent[prevLectureIndex];
+  if (finishedLecture?._id) {
+    markLectureAsCompleted(finishedLecture._id);
+  }
+  const { chapterIndex, lectureIndex } = currentlyPlaying;
+  const chapters = courseData.courseContent;
+
+  let nextLectureIndex = lectureIndex + 1;
+  let nextChapterIndex = chapterIndex;
+
+  if (chapters[nextChapterIndex] && chapters[nextChapterIndex].chapterContent[nextLectureIndex]) {
+      // Next lecture is in the same chapter
+  } else {
+      // Move to the next chapter
+      nextChapterIndex += 1;
+      nextLectureIndex = 0;
+      if (!chapters[nextChapterIndex] || !chapters[nextChapterIndex].chapterContent || chapters[nextChapterIndex].chapterContent.length === 0) {
+          toast.info("You've reached the end of the course!");
+          setCurrentlyPlaying(null); // Clear player
+          return;
+      }
+  }
+
+  const nextLecture = chapters[nextChapterIndex].chapterContent[nextLectureIndex];
+
+  if (!isAlreadyEnrolled && !nextLecture.isPreviewFree) {
+      toast.info("The next lecture is not available for preview. Enroll to continue.");
+      setCurrentlyPlaying(null); // Clear player
+      return;
+  }
+
+  handleLectureClick(nextChapterIndex, nextLectureIndex);
+};
+
 
   useEffect(()=>{
     fetchCourseData();
-  },[])
+  },[id])
 
   useEffect(()=>{
     if(userData &&  courseData){
       setIsAlreadyEnrolled(userData.enrolledCourses.includes(courseData._id))
+      const courseProgress = userData.progress?.find(p => p.courseId === courseData._id);
+      if (courseProgress) {
+        setCompletedLectures(new Set(courseProgress.completedLectures));
+      }
     }
   },[userData,courseData])
+
+  // Progress bar calculation
+  const totalLectures = courseData?.courseContent.reduce((acc, chapter) => acc + (chapter.chapterContent?.length || 0), 0) || 0;
+  const completedCount = completedLectures.size;
+  const progressPercentage = totalLectures > 0 ? (completedCount / totalLectures) * 100 : 0;
 
   const toggleSection=(index)=>{
     setOpenSections((prev)=>(
@@ -190,32 +282,42 @@ const Coursedetails = () => {
           <p>{(courseData.enrolledStudents || []).length} {(courseData.enrolledStudents || []).length>1 ? ' students enrolled' : ' student enrolled'}</p>
         </div>
         <div className='pt-8 text-gray-700'>
+            {isAlreadyEnrolled && (
+              <div className='mb-4'>
+                <div className='flex justify-between items-center mb-1 text-xs text-gray-600'>
+                  <span className='font-medium'>Your Progress</span>
+                  <span className='font-medium'>{completedCount} / {totalLectures} lectures</span>
+                </div>
+                <div className='w-full bg-gray-200 rounded-full h-2.5'>
+                  <div className='bg-blue-600 h-2.5 rounded-full' style={{ width: `${progressPercentage}%` }}></div>
+                </div>
+              </div>
+            )}
             <div className='pt-5'>
               {(courseData.courseContent || []).map((chapter, index) => (
                 <div key={index} className='border border-gray-300 bg-white mb-2 rounded'>
                   <div className='flex items-center justify-between px-4 py-3 cursor-pointer select-none' onClick={()=>toggleSection(index)}>
                     <div className='flex items-center gap-2'>
-                      <img className={`transform transition-transform ${openSections[index] ? '' : 'rotate-270'}`} src={assets.down_arrow_icon} alt="" />
+                      <img className={`transform transition-transform w-3 h-3 ${openSections[index] ? '' : '-rotate-90'}`} src={assets.down_arrow_icon} alt="" />
                       <p className='font-medium md:text-base text-sm'>{chapter.chapterTitle}</p>
                     </div>
                     <p className='text-sm md:text-default'>{(chapter.chapterContent || []).length} lectures - {calculateChapterTime(chapter)}</p>
                   </div>
                   <div className={`overflow-hidden transition-all duration-300 ${openSections[index] ? 'max-h-96' : 'max-h-0'}`}>
                     <ul className='list-disc md:pl-10 pl-4 pr-4 py-2 text-gray-600 border-t border-gray-300'>
-                      {(chapter.chapterContent || []).map((lecture,i)=>(
-                        <li key={i} className='flex items-start gap-2 py-1'>
-                          <img src={assets.play_icon} alt="" className='w-4 h-4 mt-1' />
-                          <div className='flex items-center justify-between w-full text-gray-800 text-xs md:text-default'>
-                            <p>{lecture.lectureTitle}</p>
-                            <div className='flex gap-2'>
-                              {lecture.isPreviewFree && <p onClick={() => {
-                                const videoId = getYouTubeVideoId(lecture.lectureUrl);
-                                if (videoId) {
-                                  setPlayerData({ videoId });
-                                } else {
-                                  toast.error("Could not find a valid video for preview.");
-                                }
-                              }} className='cursor-pointer text-blue-500'> Preview</p>}
+                      {(chapter.chapterContent || []).map((lecture, i) => (
+                        <li key={lecture._id || i} className='flex items-start gap-2 py-1.5 cursor-pointer hover:bg-gray-100 rounded p-1' onClick={() => handleLectureClick(index, i)}>
+                          {completedLectures.has(lecture._id) ? (
+                            <img src={assets.check_icon} alt="Completed" className='w-4 h-4 mt-1 text-green-500' />
+                          ) : (
+                            <img src={assets.play_icon} alt="Play" className='w-4 h-4 mt-1' />
+                          )}
+                          <div className='flex items-center justify-between w-full text-xs md:text-default w-full'>
+                            <p className={`${completedLectures.has(lecture._id) ? 'text-gray-400 line-through' : 'text-gray-800'}`}>{lecture.lectureTitle}</p>
+                            <div className='flex gap-3 items-center'>
+                              {(lecture.isPreviewFree && !isAlreadyEnrolled) && 
+                                <p className='text-blue-500 text-xs'> Preview</p>
+                              }
                               <p>{humanizeDuration((lecture.lectureDuration || 0) *60*1000,{units: ['h','m']})}</p>
                             </div>
                           </div>
@@ -235,8 +337,20 @@ const Coursedetails = () => {
       </div>
       {/* reviews and ratings */}
         <div className='md:w-3/4 z-10 shadow rounded-t md:rounded-none overflow-hidden bg-white'>
-          { playerData ? <YouTube videoId={playerData.videoId} opts={{playerVars:{ autoplay:1}}} iframeClassName='w-full aspect-video'/> 
-          : <img src={courseData.courseThumbnail || ''} alt="" />
+          { currentlyPlaying ? (
+            <>
+              <YouTube 
+                videoId={currentlyPlaying.videoId} 
+                opts={{playerVars:{ autoplay:1}}} 
+                iframeClassName='w-full aspect-video'
+                onEnd={playNextLecture}
+              />
+               <div className='p-2 flex justify-between items-center bg-gray-50 border-b'>
+                <p className='text-sm font-semibold text-gray-700'>Now Playing: {currentlyPlaying.title}</p>
+                <button onClick={playNextLecture} className='bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-700 transition-colors'>Next Lecture &gt;</button>
+              </div>
+            </>
+          ) : <img src={courseData.courseThumbnail || ''} alt="" className='w-full aspect-video object-cover' />
           }
           <div className='p-5'>
               <div className='flex items-center gap-2'>
