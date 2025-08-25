@@ -419,7 +419,7 @@ const EditCourse = () => {
           </div>
         )}
 
-        <button type="submit" className="bg-green-600 text-white py-2 px-6 rounded mt-4">Update Course</button>
+        <button type="submit" className="bg-green-600 text-white py-2 px-6 rounded mt-4 p-1">Update Course</button>
       </form>
     </div>
   );
