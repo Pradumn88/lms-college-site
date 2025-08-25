@@ -17,27 +17,33 @@ export const getAllCourses = async (req, res) => {
 // 📌 Get course by ID
 export const getCourseId = async (req, res) => {
   const { id } = req.params;
+  const userId = req.auth?.userId; // Clerk user ID is optional here
 
   try {
     const courseData = await Course.findById(id).populate({ path: "educator" });
 
     if (!courseData) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Course not found" });
+      return res.status(404).json({ success: false, message: "Course not found" });
     }
 
-    // Hide non-preview lectures
-    courseData.courseContent.forEach((chapter) => {
-      chapter.chapterContent.forEach((lecture) => {
-        if (!lecture.isPreviewFree) {
-          lecture.lectureUrl = "";
-        }
+    // Check if the user is enrolled or is the educator for the course
+    const isEnrolled = userId ? courseData.enrolledStudents.some(studentId => studentId.toString() === userId) : false;
+    const isEducator = userId ? courseData.educator?._id.toString() === userId : false;
+
+    // Hide non-preview lectures for users who are not enrolled and not the educator
+    if (!isEnrolled && !isEducator) {
+      courseData.courseContent.forEach((chapter) => {
+        chapter.chapterContent.forEach((lecture) => {
+          if (!lecture.isPreviewFree) {
+            lecture.lectureUrl = ""; // or some placeholder
+          }
+        });
       });
-    });
+    }
 
     res.json({ success: true, courseData });
   } catch (error) {
+    console.error("Error fetching course by ID:", error);
     res.json({ success: false, message: error.message });
   }
 };
@@ -45,10 +51,12 @@ export const getCourseId = async (req, res) => {
 // 📌 Create a new course
 export const createCourse = async (req, res) => {
   try {
-    const course = new Course(req.body);
+    const educatorId = req.auth.userId;
+    const course = new Course({ ...req.body, educator: educatorId });
     await course.save();
     res.status(201).json({ success: true, course });
   } catch (error) {
+    console.error("Error creating course:", error);
     res.status(400).json({ success: false, message: error.message });
   }
 };
@@ -56,17 +64,32 @@ export const createCourse = async (req, res) => {
 // 📌 Update course
 export const updateCourse = async (req, res) => {
   const { id } = req.params;
+  const educatorId = req.auth.userId;
+  const updates = req.body;
+
   try {
-    const updatedCourse = await Course.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
-    if (!updatedCourse) {
+    const course = await Course.findById(id);
+
+    if (!course) {
       return res
         .status(404)
         .json({ success: false, message: "Course not found" });
     }
-    res.json({ success: true, course: updatedCourse });
+
+    // Security: Ensure the user updating the course is the one who created it
+    if (course.educator.toString() !== educatorId) {
+      return res
+        .status(403)
+        .json({ success: false, message: "User not authorized to update this course" });
+    }
+
+    // Apply updates and save
+    Object.assign(course, updates);
+    await course.save();
+
+    res.json({ success: true, course });
   } catch (error) {
+    console.error("Error updating course:", error);
     res.status(400).json({ success: false, message: error.message });
   }
 };
