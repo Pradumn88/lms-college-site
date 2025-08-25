@@ -9,6 +9,33 @@ import YouTube from 'react-youtube'
 import { toast } from 'react-toastify';
 import axios from 'axios';
 
+const getYouTubeVideoId = (url) => {
+  if (!url) return null;
+  let videoId = null;
+  try {
+    const urlObject = new URL(url);
+    const hostname = urlObject.hostname;
+    if (hostname.includes('youtube.com')) {
+      if (urlObject.pathname.includes('/embed/')) {
+        videoId = urlObject.pathname.split('/embed/')[1].split(/[?#]/)[0];
+      } else {
+        videoId = urlObject.searchParams.get('v');
+      }
+    } else if (hostname.includes('youtu.be')) {
+      videoId = urlObject.pathname.substring(1).split(/[?#]/)[0];
+    }
+  } catch (error) {
+    console.error("Could not parse URL, it might be malformed or just an ID:", url);
+    // If it's not a valid URL, it might just be the ID itself.
+    // A YouTube video ID is typically 11 characters long and contains letters, numbers, hyphens, and underscores.
+    if (typeof url === 'string' && /^[a-zA-Z0-9_-]{11}$/.test(url)) {
+      return url;
+    }
+    return null;
+  }
+  return videoId;
+};
+
 const Coursedetails = () => {
   const {id}= useParams();
   const {allCourses,calculateRatings,calculateCourseDuration,calculateChapterTime,calculateNoofLectures,currency,backend , userData, getToken}= useContext(AppContext)
@@ -146,11 +173,11 @@ const Coursedetails = () => {
 
   return courseData ? (
     <>
-    <div className='flex md:flex-row flex-col-reverse gap-10 relative items-start justify-between md:px-36 px-8 md:pt-30 pt-20 text-left '>
+    <div className='flex md:flex-row flex-col-reverse gap-10 relative items-start md:px-36 px-8 md:pt-30 pt-20 text-left '>
       <div className="absolute top-0 left-0 w-full h-[500px] -z-10 bg-gradient-to-b from-cyan-600/70 to-white"></div>
 
       {/* Left column */}
-      <div className='max-w-xl z-10 text-gray-500'>
+      <div className='md:w-1/4 z-10 text-gray-500'>
         <h1 className='sm:text-2xl text-4xl underline font-semibold text-gray-800'>{courseData.courseTitle}</h1>
         <p className='pt-4 md:text-base text-sm' dangerouslySetInnerHTML={{__html: (courseData.courseDescription || '').slice(0,200)}}></p>
         <p className='text-sm pt-5'>Course by <span className='text-gray-800 font-semibold'>{courseData.educator?.name || 'Unknown'}</span></p>
@@ -181,9 +208,14 @@ const Coursedetails = () => {
                           <div className='flex items-center justify-between w-full text-gray-800 text-xs md:text-default'>
                             <p>{lecture.lectureTitle}</p>
                             <div className='flex gap-2'>
-                              {lecture.isPreviewFree && <p onClick={()=> setPlayerData({
-                                videoId: lecture.lectureUrl?.split('/').pop() //gives the videoId
-                              })} className='cursor-pointer text-blue-500'> Preview</p>}
+                              {lecture.isPreviewFree && <p onClick={() => {
+                                const videoId = getYouTubeVideoId(lecture.lectureUrl);
+                                if (videoId) {
+                                  setPlayerData({ videoId });
+                                } else {
+                                  toast.error("Could not find a valid video for preview.");
+                                }
+                              }} className='cursor-pointer text-blue-500'> Preview</p>}
                               <p>{humanizeDuration((lecture.lectureDuration || 0) *60*1000,{units: ['h','m']})}</p>
                             </div>
                           </div>
@@ -201,9 +233,8 @@ const Coursedetails = () => {
           <p className='pt-3 text-[15px] text-[#7A7B7D] mb-16' dangerouslySetInnerHTML={{__html: courseData.courseDescription || ''}}></p>
         </div>
       </div>
-      <div></div>
       {/* reviews and ratings */}
-        <div className='max-w-course-card z-10 shadow rounded-t md:rounded-none overflow-hidden bg-white min-w-[300px] sm:min-w-[420px]'>
+        <div className='md:w-3/4 z-10 shadow rounded-t md:rounded-none overflow-hidden bg-white'>
           { playerData ? <YouTube videoId={playerData.videoId} opts={{playerVars:{ autoplay:1}}} iframeClassName='w-full aspect-video'/> 
           : <img src={courseData.courseThumbnail || ''} alt="" />
           }
