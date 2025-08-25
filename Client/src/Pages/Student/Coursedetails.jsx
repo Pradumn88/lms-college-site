@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AppContext } from '../../Context/AppContext'
 import Loading from '../../Components/Student/Loading';
 import { assets } from '../../assets/assets';
@@ -39,6 +39,8 @@ const getYouTubeVideoId = (url) => {
 const Coursedetails = () => {
   const {id}= useParams();
   const {allCourses,calculateRatings,calculateCourseDuration,calculateChapterTime,calculateNoofLectures,currency,backend , userData, getToken}= useContext(AppContext)
+  const location = useLocation();
+  const navigate = useNavigate();
   const [courseData,setCourseData] = useState(null)
   const [openSections,setOpenSections] = useState({})
   const [isAlreadyEnrolled,setIsAlreadyEnrolled] = useState(false);
@@ -235,6 +237,43 @@ const playNextLecture = () => {
   handleLectureClick(nextChapterIndex, nextLectureIndex);
 };
 
+
+  // This useEffect handles the redirect from Stripe after a successful payment.
+  useEffect(() => {
+    const verifyPurchase = async () => {
+        const searchParams = new URLSearchParams(location.search);
+        const sessionId = searchParams.get('session_id');
+
+        if (sessionId) {
+            try {
+                const token = await getToken();
+                if (!token) {
+                    toast.error("Authentication error. Please log in again.");
+                    return;
+                }
+                // This endpoint verifies the Stripe session and enrolls the user on the backend.
+                const response = await axios.post(`${backend}/api/user/verify-purchase`, 
+                    { courseId: id, sessionId }, 
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+
+                if (response.data.success) {
+                    toast.success("Enrollment successful! Redirecting...");
+                    // A full page navigation ensures the user context is refreshed with the new enrollment.
+                    window.location.href = '/my-enrollments';
+                } else {
+                    toast.error(response.data.message || "Payment verification failed.");
+                    navigate(`/course/${id}`, { replace: true }); // Clean URL
+                }
+            } catch (error) {
+                toast.error("An error occurred during payment verification.");
+                console.error("Verification error:", error);
+                navigate(`/course/${id}`, { replace: true }); // Clean URL
+            }
+        }
+    };
+    verifyPurchase();
+}, [location, navigate, getToken, backend, id]);
 
   useEffect(()=>{
     fetchCourseData();
