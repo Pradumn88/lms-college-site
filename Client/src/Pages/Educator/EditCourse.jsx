@@ -301,6 +301,7 @@ const EditCourse = () => {
     discount: 0,
     thumbnail: '',
     courseContent: [],
+    isPublished: false,
   });
 
   const [image, setImage] = useState(null);
@@ -338,13 +339,14 @@ const EditCourse = () => {
       });
 
       if (data.success) {
-        const { courseTitle, courseDescription, coursePrice, discount, courseContent, thumbnail } =
+        const { courseTitle, courseDescription, coursePrice, discount, courseContent, thumbnail, isPublished } =
           data.courseData;
 
         setCourseData({
           courseTitle,
           coursePrice,
           discount,
+          isPublished,
           thumbnail,
           courseContent,
         });
@@ -365,7 +367,7 @@ const EditCourse = () => {
       });
     }
     fetchCourse();
-  }, []);
+  }, [id, getToken, backend]);
 
   const handleChange = (e) => {
     setCourseData({ ...courseData, [e.target.name]: e.target.value });
