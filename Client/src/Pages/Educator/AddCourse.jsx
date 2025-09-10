@@ -44,52 +44,55 @@ const AddCourse = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!image) {
-      toast.error('Thumbnail not selected');
-      return;
-    }
+  e.preventDefault();
+  if (!image) {
+    toast.error('Thumbnail not selected');
+    return;
+  }
 
-    const imageUrl = await uploadImageToCloudinary(image);
-    console.log('Cloudinary image URL:', imageUrl);
-    if (!imageUrl) return;
+  const imageUrl = await uploadImageToCloudinary(image);
+  if (!imageUrl) return;
 
-    const courseData = {
-      courseTitle,
-      courseDescription: quillRef.current.root.innerHTML,
-      coursePrice: Number(coursePrice),
-      discount: Number(discount),
-      courseContent: chapters,
-      thumbnail: imageUrl,
-    };
-
-    try {
-      const token = await getToken();
-      const { data } = await axios.post(
-        backend + '/api/educator/add-course',
-        courseData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (data.success) {
-        toast.success(data.message);
-        setCourseTitle('');
-        setCoursePrice(0);
-        setDiscount(0);
-        setImage(null);
-        setChapters([]);
-        quillRef.current.root.innerHTML = '';
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error(error.message);
-    }
+  const courseData = {
+    courseTitle,
+    courseDescription: quillRef.current.root.innerHTML,
+    coursePrice: Number(coursePrice),
+    discount: Number(discount),
+    courseContent: chapters,
+    thumbnail: imageUrl,
   };
+
+  try {
+    const token = await getToken();
+    const { data } = await axios.post(
+      backend + '/api/educator/add-course',
+      courseData,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    if (data.success) {
+      toast.success(data.message);
+
+      // ✅ Refresh the courses list in context
+      fetchAllCourses();
+
+      // reset form
+      setCourseTitle('');
+      setCoursePrice(0);
+      setDiscount(0);
+      setImage(null);
+      setChapters([]);
+      quillRef.current.root.innerHTML = '';
+    } else {
+      toast.error(data.message);
+    }
+  } catch (error) {
+    toast.error(error.message);
+  }
+};
+
 
   const handleChapter = (action, chapterId) => {
     if (action === 'add') {
