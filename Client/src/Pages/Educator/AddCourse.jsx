@@ -61,6 +61,7 @@ const AddCourse = () => {
       discount: Number(discount),
       courseContent: chapters,
       thumbnail: imageUrl,
+      isPublished: true,
     };
 
     try {
