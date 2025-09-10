@@ -7,7 +7,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const AddCourse = () => {
-  const { backend, getToken } = useContext(AppContext);
+  const { backend, getToken, fetchAllCourses } = useContext(AppContext);
   const quillRef = useRef(null);
   const editorRef = useRef(null);
 
@@ -78,6 +78,7 @@ const AddCourse = () => {
 
       if (data.success) {
         toast.success(data.message);
+        await fetchAllCourses();
         setCourseTitle('');
         setCoursePrice(0);
         setDiscount(0);

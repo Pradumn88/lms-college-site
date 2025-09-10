@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 const MyCourses = () => {
-  const { currency, backend, isEducator, getToken } = useContext(AppContext);
+  const { currency, backend, isEducator, getToken, fetchAllCourses } = useContext(AppContext);
   const [courses, setCourses] = useState(null);
   const navigate = useNavigate();
 
@@ -35,6 +35,7 @@ const MyCourses = () => {
       });
       if (data.success) {
         toast.success('Course deleted');
+        await fetchAllCourses();
         fetchEducatorCourses();
       } else {
         toast.error(data.message || 'Failed to delete');

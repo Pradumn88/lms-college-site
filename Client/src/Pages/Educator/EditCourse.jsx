@@ -288,7 +288,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 const EditCourse = () => {
-  const { backend, getToken } = useContext(AppContext);
+  const { backend, getToken, fetchAllCourses } = useContext(AppContext);
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -312,6 +312,7 @@ const EditCourse = () => {
     lectureUrl: '',
     isPreviewFree: false,
   });
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const uploadImageToCloudinary = async (file) => {
     const formData = new FormData();
@@ -438,11 +439,16 @@ const EditCourse = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isUpdating) return;
+    setIsUpdating(true);
 
     let imageUrl = courseData.thumbnail;
     if (image) {
       const uploaded = await uploadImageToCloudinary(image);
-      if (!uploaded) return;
+      if (!uploaded) {
+        setIsUpdating(false);
+        return;
+      }
       imageUrl = uploaded;
     }
 
@@ -462,12 +468,17 @@ const EditCourse = () => {
 
       if (data.success) {
         toast.success('Course updated');
+        if (fetchAllCourses) {
+          await fetchAllCourses();
+        }
         navigate('/educator/my-courses');
       } else {
         throw new Error(data.message);
       }
     } catch (err) {
       toast.error(err.message);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -537,7 +548,9 @@ const EditCourse = () => {
           </div>
         )}
 
-        <button type="submit" className="bg-green-600 text-white py-2 px-6 rounded mt-4">Update Course</button>
+        <button type="submit" className="bg-green-600 text-white py-2 px-6 rounded mt-4 disabled:bg-green-400" disabled={isUpdating}>
+          {isUpdating ? 'Updating...' : 'Update Course'}
+        </button>
       </form>
     </div>
   );
