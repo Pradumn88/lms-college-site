@@ -35,7 +35,6 @@ export const userEnrolledCourses = async (req,res)=>{
 export const purchaseCourse = async (req,res)=>{
     try {
         const { courseId } = req.body
-        const { login } = req.headers
         const userId = req.auth.userId
         const userData =  await User.findById(userId)
         const courseData = await Course.findById(courseId)
@@ -44,11 +43,18 @@ export const purchaseCourse = async (req,res)=>{
             return res.json({ success: false, message: 'data not found'})
         }
 
+        // Use correct fields and ensure numbers
+        const coursePrice = Number(courseData.coursePrice) || 0;
+        const discount = Number(courseData.discount) || 0;
+        const amount = (coursePrice - (discount * coursePrice / 100));
+
+        // Defensive fallback
+        const finalAmount = isNaN(amount) ? 0 : amount;
+
         const purchaseData = {
             courseId: courseData._id,
             userId,
-            amount: (courseData.coursePrice- courseData.discount * courseData.coursePrice / 100).toFixed(2),
-
+            amount: finalAmount,
         }
 
         const newPurchase = await Purchase.create(purchaseData)
@@ -69,7 +75,7 @@ export const purchaseCourse = async (req,res)=>{
                 product_data: {
                     name: courseData.courseTitle
                 },
-                unit_amount: Math.floor(newPurchase.amount) * 100
+                unit_amount: Math.floor(newPurchase.amount * 100)
             },
             quantity: 1
         }];
@@ -172,4 +178,4 @@ export const addUserRating = async (req,res)=>{
         res.json({ success: false, message: error.message });
     }
 
-}
+} 

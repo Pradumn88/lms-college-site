@@ -281,7 +281,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import uniqid from 'uniqid';
 import Quill from 'quill';
-import { assets } from '../../assets/assets';
 import { AppContext } from '../../Context/AppContext';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -370,7 +369,11 @@ const EditCourse = () => {
   }, [id, getToken, backend]);
 
   const handleChange = (e) => {
-    setCourseData({ ...courseData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setCourseData({
+      ...courseData,
+      [name]: name === "coursePrice" || name === "discount" ? Number(value) : value,
+    });
   };
 
   const handleChapter = (action, chapterId) => {
@@ -462,6 +465,8 @@ const EditCourse = () => {
       thumbnail: imageUrl,
     };
 
+    console.log("Final Payload Sent:", payload);
+
     try {
       const token = await getToken();
       const { data } = await axios.put(`${backend}/api/course/${id}`, payload, {
@@ -505,8 +510,6 @@ const EditCourse = () => {
           {courseData.thumbnail && <img src={courseData.thumbnail} alt="thumb" className="max-h-16 mt-2" />}
         </div>
 
-        {/* Chapter and lecture editor (reuse from AddCourse) */}
-        {/* You can optionally modularize this section into a component if reused often */}
         {courseData.courseContent.map((chapter, i) => (
           <div key={chapter.chapterId} className="border p-3 rounded mb-3">
             <div className="flex justify-between">

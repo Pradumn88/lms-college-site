@@ -1,31 +1,16 @@
-import express from "express";
-import {
-  getAllCourses,
+import express from 'express'
+import { getAllCourses,
   getCourseId,
   createCourse,
   updateCourse,
-  deleteCourse,
-  enrollCourse,
-  getMyEnrollments,
-} from "../controllers/courseController.js";
-import { requireAuth } from "@clerk/express";
-import { getEducatorCourses } from "../controllers/educatorController.js";
+  deleteCourse} from '../controllers/courseController.js'
 
-const courseRouter = express.Router();
+const courseRouter = express.Router()
 
-// Public routes
-courseRouter.get("/all", getAllCourses);
-
-// Auth routes
-courseRouter.get("/my-enrollments", requireAuth(), getMyEnrollments);
-courseRouter.get("/educator/courses", requireAuth(), getEducatorCourses);
-
-courseRouter.post("/", createCourse);
-courseRouter.put("/:id", updateCourse);
-courseRouter.delete("/:id", deleteCourse);
-courseRouter.post("/:courseId/enroll", requireAuth(), enrollCourse);
-
-// Keep this last
-courseRouter.get("/:id", getCourseId);
+courseRouter.get('/all', getAllCourses)
+courseRouter.get('/:id', getCourseId)
+courseRouter.post('/', createCourse);         // POST new course
+courseRouter.put('/:id', updateCourse);       // PUT update course
+courseRouter.delete('/:id', deleteCourse);    // DELETE course
 
 export default courseRouter;

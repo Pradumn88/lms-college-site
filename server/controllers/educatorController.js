@@ -25,15 +25,23 @@ export const updateRoleToEducator = async (req, res)=>{
 
 export const addCourse = async (req, res)=>{
     try {
-        const courseData = req.body;
+        // Accept courseData as a plain object, not as a JSON string
+        const { courseTitle, courseDescription, coursePrice, discount, courseContent, thumbnail } = req.body;
         const educatorId = req.auth.userId;
 
-        if (!courseData.thumbnail) {
+        if (!thumbnail) {
             return res.json({ success: false, message: 'Thumbnail not Attached' });
         }
 
-        // Use all data from the request body and add the educator ID
-        await Course.create({ ...courseData, educator: educatorId });
+        const newCourse = await Course.create({
+            courseTitle,
+            courseDescription,
+            coursePrice,
+            discount,
+            courseContent,
+            courseThumbnail: thumbnail,
+            educator: educatorId
+        });
 
         res.json({ success: true, message: 'Course Added' });
     } catch (error) {
