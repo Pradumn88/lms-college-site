@@ -15,15 +15,37 @@ import authRouter from './routes/authRoutes.js';
 // 1️⃣ Initialize app
 const app = express();
 
-// 2️⃣ Middleware FIRST
-app.use(
-  cors({
-    origin: "https://lms-rfontend.vercel.app",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
-  })
-);
-app.options("*", cors());
+// 2️⃣ CORS Configuration - Allow both local and deployed frontends
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'https://lms-rfontend.vercel.app',
+  'https://lms-frontend.vercel.app',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(null, true); // In development, allow all. Change to callback(new Error('...')) in strict production
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
 
 // 3️⃣ Routes
 app.get('/', (req, res) => res.send("API WORKING"));
@@ -37,6 +59,11 @@ app.use('/api/course', express.json(), courseRouter);
 app.use('/api/user', express.json(), userRouter);
 app.use('/api/admin', express.json(), adminRouter);
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server Error:', err);
+  res.status(500).json({ success: false, message: err.message || 'Internal Server Error' });
+});
 
 // 4️⃣ Start server ONLY ONCE
 const startServer = async () => {
