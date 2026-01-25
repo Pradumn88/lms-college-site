@@ -18,22 +18,13 @@ const app = express();
 // 2️⃣ Trust proxy for Vercel
 app.set('trust proxy', 1);
 
-// 3️⃣ CORS - Allow all origins
+// 3️⃣ CORS - Allow all origins (Express 5 compatible)
 app.use(cors({
   origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   credentials: true
 }));
-
-// Handle OPTIONS preflight
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.sendStatus(200);
-});
 
 // 4️⃣ Health check - works without DB
 app.get('/', (req, res) => {
@@ -44,7 +35,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
     ok: true,
@@ -72,7 +62,7 @@ app.use('/api/course', courseRouter);
 app.use('/api/user', userRouter);
 app.use('/api/admin', adminRouter);
 
-// 8️⃣ 404 handler
+// 8️⃣ 404 handler (Express 5 compatible - no wildcard)
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });
 });
