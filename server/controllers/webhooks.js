@@ -1,7 +1,7 @@
 import { Webhook } from "svix";
 import User from "../models/user.js";
 import { Purchase } from "../models/Purchase.js";
-import  Course  from "../models/course.js";
+import Course from "../models/course.js";
 import Stripe from "stripe";
 
 // Clerk webhook handler
@@ -53,8 +53,14 @@ export const clerkWebhooks = async (req, res) => {
   }
 };
 
-// Stripe webhook handler
-const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Stripe webhook handler - lazy initialization to avoid crash if env var missing
+let stripeInstance = null;
+const getStripe = () => {
+  if (!stripeInstance && process.env.STRIPE_SECRET_KEY) {
+    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+  }
+  return stripeInstance;
+};
 
 export const stripeWebhooks = async (request, response) => {
   const sig = request.headers["stripe-signature"];
@@ -77,7 +83,7 @@ export const stripeWebhooks = async (request, response) => {
         const paymentIntent = event.data.object;
         const paymentIntentId = paymentIntent.id;
 
-        const session = await stripeInstance.checkout.sessions.list({
+        const session = await getStripe().checkout.sessions.list({
           payment_intent: paymentIntentId,
         });
 
@@ -108,7 +114,7 @@ export const stripeWebhooks = async (request, response) => {
         const paymentIntent = event.data.object;
         const paymentIntentId = paymentIntent.id;
 
-        const session = await stripeInstance.checkout.sessions.list({
+        const session = await getStripe().checkout.sessions.list({
           payment_intent: paymentIntentId,
         });
 
