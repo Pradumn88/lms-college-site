@@ -1,0 +1,27 @@
+[
+  {
+    "q": "How do I enroll in a course?",
+    "a": "Open the Course List, choose a course, then click **Enroll Now**. Your enrollments appear under **My Enrollments**.",
+    "tags": ["enroll", "course", "join", "signup"]
+  },
+  {
+    "q": "Where do I see assignments and submit work?",
+    "a": "Open the course → **Assignments** section. Each assignment shows the deadline and an **Upload/Submit** button.",
+    "tags": ["assignment", "submit", "submission", "deadline"]
+  },
+  {
+    "q": "How are payments handled?",
+    "a": "Payments are processed securely via Stripe. You’ll see fees at checkout before confirming the payment.",
+    "tags": ["payment", "fees", "pay", "stripe"]
+  },
+  {
+    "q": "Where can I watch lessons?",
+    "a": "From the course page, click **Start/Resume** to open the **Player**. Your progress is saved automatically.",
+    "tags": ["player", "video", "lesson", "watch"]
+  },
+  {
+    "q": "How do I contact the instructor?",
+    "a": "Open the course page and view the **Instructor** section. If messaging is enabled, you'll see a **Contact Instructor** option.",
+    "tags": ["teacher", "faculty", "contact"]
+  }
+]
