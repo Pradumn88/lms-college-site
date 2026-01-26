@@ -366,21 +366,30 @@ export const getAllTransactions = async (req, res) => {
 };
 
 // Get dashboard stats
+// Get dashboard stats
 export const getDashboardStats = async (req, res) => {
     try {
         await connectDB();
+        
+        // 1. Fetch DB stats first (These should always work)
         const totalStudents = await User.countDocuments();
         const totalCourses = await Course.countDocuments();
-
-        // Get educator count from Clerk
-        const users = await clerkClient.users.getUserList({ limit: 100 });
-        const totalEducators = users.data.filter(u => u.publicMetadata?.role === 'educator').length;
-
+        const totalTransactions = await Purchase.countDocuments();
+        
         const completedPurchases = await Purchase.find({ status: 'Completed' });
         const totalRevenue = completedPurchases.reduce((sum, p) => sum + p.amount, 0);
-        const totalTransactions = await Purchase.countDocuments();
 
-        // Recent activity
+        // 2. Fetch Clerk stats safely (If this fails, don't crash the rest)
+        let totalEducators = 0;
+        try {
+            const users = await clerkClient.users.getUserList({ limit: 100 });
+            totalEducators = users.data.filter(u => u.publicMetadata?.role === 'educator').length;
+        } catch (clerkError) {
+            console.error('Clerk Error in Dashboard:', clerkError.message);
+            // totalEducators stays 0, but courses/students will still show!
+        }
+
+        // 3. Recent activity
         const recentStudents = await User.find({}).sort({ createdAt: -1 }).limit(5);
         const recentTransactions = await Purchase.find({})
             .populate('courseId')
