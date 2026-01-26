@@ -3,6 +3,13 @@ import nodemailer from 'nodemailer';
 // Gmail SMTP Configuration (primary - no domain required)
 // To use: Enable 2FA in Google Account, then create an App Password at:
 // https://myaccount.google.com/apppasswords
+// ... imports
+
+console.log("DEBUG EMAIL CONFIG:");
+console.log("User:", process.env.GMAIL_USER);
+console.log("Pass Length:", process.env.GMAIL_APP_PASSWORD ? process.env.GMAIL_APP_PASSWORD.length : "MISSING");
+console.log("First Char of Pass:", process.env.GMAIL_APP_PASSWORD ? process.env.GMAIL_APP_PASSWORD[0] : "N/A");
+
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
