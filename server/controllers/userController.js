@@ -6,6 +6,7 @@ import Razorpay from "razorpay";
 import Course from "../models/course.js";
 import { CourseProgress } from "../models/CourseProgress.js";
 import crypto from "crypto";
+import connectDB from '../configs/mongodb.js'; // 👈 FIX 1: Import connection
 
 // Initialize Razorpay
 const razorpayInstance = new Razorpay({
@@ -16,6 +17,7 @@ const razorpayInstance = new Razorpay({
 // Get user data
 export const getUserData = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2: Connect first
         const userId = req.userId;
         const user = await User.findById(userId).select('-password');
 
@@ -31,6 +33,7 @@ export const getUserData = async (req, res) => {
 // User enrolled courses with lecture link
 export const userEnrolledCourses = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2
         const userId = req.userId;
         const userData = await User.findById(userId).populate('enrolledCourses');
 
@@ -43,6 +46,7 @@ export const userEnrolledCourses = async (req, res) => {
 // Get payment history
 export const getPaymentHistory = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2
         const userId = req.userId;
 
         const purchases = await Purchase.find({ userId })
@@ -73,6 +77,7 @@ export const getPaymentHistory = async (req, res) => {
 // Request refund
 export const requestRefund = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2
         const userId = req.userId;
         const { purchaseId, reason } = req.body;
 
@@ -109,6 +114,7 @@ export const requestRefund = async (req, res) => {
 // Unenroll from course
 export const unenrollCourse = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2
         const userId = req.userId;
         const { courseId } = req.body;
 
@@ -134,6 +140,7 @@ export const unenrollCourse = async (req, res) => {
 // Get all educators
 export const getEducators = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2
         const educators = await User.find({ role: 'educator' }).select('name email imageUrl');
 
         // Get course count for each educator
@@ -156,6 +163,7 @@ export const getEducators = async (req, res) => {
 // Get educator's courses
 export const getEducatorCoursesPublic = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2
         const { educatorId } = req.params;
 
         const educator = await User.findById(educatorId).select('name email imageUrl');
@@ -174,6 +182,7 @@ export const getEducatorCoursesPublic = async (req, res) => {
 // Get student dashboard stats
 export const getStudentDashboard = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2
         const userId = req.userId;
 
         const user = await User.findById(userId).populate('enrolledCourses');
@@ -187,7 +196,9 @@ export const getStudentDashboard = async (req, res) => {
 
         for (const course of user.enrolledCourses || []) {
             course.courseContent?.forEach(chapter => {
-                totalLectures += chapter.chapterContent?.length || 0;
+                chapter.chapterContent?.forEach(lecture => {
+                    totalLectures++;
+                });
             });
         }
 
@@ -215,6 +226,7 @@ export const getStudentDashboard = async (req, res) => {
 // Purchase course with Stripe
 export const purchaseCourseStripe = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2
         const { courseId } = req.body
         const userId = req.userId
         const userData = await User.findById(userId)
@@ -278,6 +290,7 @@ export const purchaseCourseStripe = async (req, res) => {
 // Purchase course with Razorpay - Create Order
 export const purchaseCourseRazorpay = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2
         const { courseId } = req.body
         const userId = req.userId
         const userData = await User.findById(userId)
@@ -344,6 +357,7 @@ export const purchaseCourseRazorpay = async (req, res) => {
 // Verify Razorpay Payment
 export const verifyRazorpayPayment = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, purchaseId } = req.body;
 
         // Verify signature
@@ -388,8 +402,8 @@ export const verifyRazorpayPayment = async (req, res) => {
 
 // Legacy purchase route (defaults to showing payment options)
 export const purchaseCourse = async (req, res) => {
-    // This now just validates and returns course info for payment selection
     try {
+        await connectDB(); // 👈 FIX 2
         const { courseId } = req.body
         const userId = req.userId
         const userData = await User.findById(userId)
@@ -428,6 +442,7 @@ export const purchaseCourse = async (req, res) => {
 // Update user course progress
 export const updateUserCourseProgress = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2
         const userId = req.userId
         const { courseId, lectureId } = req.body
         const progressData = await CourseProgress.findOne({ userId, courseId })
@@ -456,6 +471,7 @@ export const updateUserCourseProgress = async (req, res) => {
 // Get user course progress
 export const getUserCourseProgress = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2
         const userId = req.userId
         const { courseId } = req.body
         const progressData = await CourseProgress.findOne({ userId, courseId })
@@ -468,14 +484,15 @@ export const getUserCourseProgress = async (req, res) => {
 
 // Add user rating to course
 export const addUserRating = async (req, res) => {
-    const userId = req.userId;
-    const { courseId, rating } = req.body;
-
-    if (!courseId || !userId || !rating || rating < 1 || rating > 5) {
-        return res.json({ success: false, message: 'Invalid details' });
-    }
-
     try {
+        await connectDB(); // 👈 FIX 2
+        const userId = req.userId;
+        const { courseId, rating } = req.body;
+
+        if (!courseId || !userId || !rating || rating < 1 || rating > 5) {
+            return res.json({ success: false, message: 'Invalid details' });
+        }
+
         const course = await Course.findById(courseId);
 
         if (!course) {

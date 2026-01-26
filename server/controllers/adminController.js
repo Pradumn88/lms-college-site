@@ -5,10 +5,12 @@ import User from '../models/user.js';
 import Course from '../models/course.js';
 import { Purchase } from '../models/Purchase.js';
 import { clerkClient } from '@clerk/express';
+import connectDB from '../configs/mongodb.js';
 
 // Initialize default admin if not exists
 const initializeAdmin = async () => {
     try {
+        await connectDB();
         const existingAdmin = await Admin.findOne({ email: 'krishnabhambani1@gmail.com' });
         if (!existingAdmin) {
             const hashedPassword = await bcrypt.hash('Krishna@2004', 10);
@@ -30,6 +32,7 @@ initializeAdmin();
 // Admin Login
 export const loginAdmin = async (req, res) => {
     try {
+        await connectDB();
         const { email, password } = req.body;
 
         if (!email || !password) {
@@ -74,6 +77,7 @@ export const loginAdmin = async (req, res) => {
 // Verify Admin Token
 export const verifyAdmin = async (req, res) => {
     try {
+        await connectDB();
         res.json({
             success: true,
             admin: req.admin
@@ -88,6 +92,7 @@ export const verifyAdmin = async (req, res) => {
 // Get all educators
 export const getAllEducators = async (req, res) => {
     try {
+        await connectDB();
         // Get all users who are educators from Clerk
         const users = await clerkClient.users.getUserList({ limit: 100 });
         const educators = users.data.filter(user => user.publicMetadata?.role === 'educator');
@@ -116,6 +121,7 @@ export const getAllEducators = async (req, res) => {
 // Remove educator role (demote to regular user)
 export const removeEducator = async (req, res) => {
     try {
+        await connectDB();
         const { educatorId } = req.params;
 
         await clerkClient.users.updateUser(educatorId, {
@@ -133,6 +139,7 @@ export const removeEducator = async (req, res) => {
 // Get all courses with educator info
 export const getAllCoursesAdmin = async (req, res) => {
     try {
+        await connectDB();
         const courses = await Course.find({}).sort({ createdAt: -1 });
 
         // Enrich with educator info
@@ -166,6 +173,7 @@ export const getAllCoursesAdmin = async (req, res) => {
 // Update course
 export const updateCourseAdmin = async (req, res) => {
     try {
+        await connectDB();
         const { courseId } = req.params;
         const updateData = req.body;
 
@@ -188,6 +196,7 @@ export const updateCourseAdmin = async (req, res) => {
 // Delete course
 export const deleteCourseAdmin = async (req, res) => {
     try {
+        await connectDB();
         const { courseId } = req.params;
 
         const course = await Course.findByIdAndDelete(courseId);
@@ -211,6 +220,7 @@ export const deleteCourseAdmin = async (req, res) => {
 // Toggle course publish status
 export const toggleCoursePublish = async (req, res) => {
     try {
+        await connectDB();
         const { courseId } = req.params;
 
         const course = await Course.findById(courseId);
@@ -236,6 +246,7 @@ export const toggleCoursePublish = async (req, res) => {
 // Get all students
 export const getAllStudents = async (req, res) => {
     try {
+        await connectDB();
         const students = await User.find({}).populate('enrolledCourses').sort({ createdAt: -1 });
 
         const studentsWithPurchases = await Promise.all(
@@ -266,6 +277,7 @@ export const getAllStudents = async (req, res) => {
 // Get student details with purchase history
 export const getStudentDetails = async (req, res) => {
     try {
+        await connectDB();
         const { studentId } = req.params;
 
         const student = await User.findById(studentId).populate('enrolledCourses');
@@ -290,6 +302,7 @@ export const getStudentDetails = async (req, res) => {
 // Remove student (delete from system)
 export const removeStudent = async (req, res) => {
     try {
+        await connectDB();
         const { studentId } = req.params;
 
         // Delete user from MongoDB
@@ -322,6 +335,7 @@ export const removeStudent = async (req, res) => {
 // Get all transactions
 export const getAllTransactions = async (req, res) => {
     try {
+        await connectDB();
         const purchases = await Purchase.find({})
             .populate('courseId')
             .sort({ createdAt: -1 });
@@ -354,6 +368,7 @@ export const getAllTransactions = async (req, res) => {
 // Get dashboard stats
 export const getDashboardStats = async (req, res) => {
     try {
+        await connectDB();
         const totalStudents = await User.countDocuments();
         const totalCourses = await Course.countDocuments();
 
@@ -388,3 +403,5 @@ export const getDashboardStats = async (req, res) => {
         res.json({ success: false, message: error.message });
     }
 };
+// Call initialization
+initializeAdmin();

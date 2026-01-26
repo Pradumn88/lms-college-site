@@ -2,10 +2,12 @@ import Course from '../models/course.js'
 import { v2 as cloudinary } from 'cloudinary'
 import { Purchase } from '../models/Purchase.js'
 import User from '../models/user.js'
+import connectDB from '../configs/mongodb.js';
 
 // add new course
 export const addCourse = async (req, res) => {
     try {
+        await connectDB();
         const courseData = req.body;
         const educatorId = req.userId;
 
@@ -24,6 +26,7 @@ export const addCourse = async (req, res) => {
 // get educator courses
 export const getEducatorCourses = async (req, res) => {
     try {
+        await connectDB();
         const educator = req.userId
 
         const courses = await Course.find({ educator })
@@ -36,6 +39,7 @@ export const getEducatorCourses = async (req, res) => {
 // Update course
 export const updateCourse = async (req, res) => {
     try {
+        await connectDB();
         const { courseId } = req.params;
         const educatorId = req.userId;
         const updateData = req.body;
@@ -65,6 +69,7 @@ export const updateCourse = async (req, res) => {
 // Delete course
 export const deleteCourse = async (req, res) => {
     try {
+        await connectDB();
         const { courseId } = req.params;
         const educatorId = req.userId;
 
@@ -92,6 +97,7 @@ export const deleteCourse = async (req, res) => {
 // Get course-specific enrolled students
 export const getCourseStudents = async (req, res) => {
     try {
+        await connectDB();
         const { courseId } = req.params;
         const educatorId = req.userId;
 
@@ -128,6 +134,7 @@ export const getCourseStudents = async (req, res) => {
 // Get purchase logs for educator's courses
 export const getPurchaseLogs = async (req, res) => {
     try {
+        await connectDB();
         const educatorId = req.userId;
 
         const courses = await Course.find({ educator: educatorId });
@@ -161,6 +168,7 @@ export const getPurchaseLogs = async (req, res) => {
 // get educator dashboard data (total earning, enrolled students, no. of courses)
 export const educatorDashboardData = async (req, res) => {
     try {
+        await connectDB();
         const educator = req.userId;
         const courses = await Course.find({ educator });
         const totalCourses = courses.length;
@@ -203,6 +211,7 @@ export const educatorDashboardData = async (req, res) => {
 // get enrolled students data with purchase data
 export const getEnrolledStudentsData = async (req, res) => {
     try {
+        await connectDB();
         const educator = req.userId;
         const courses = await Course.find({ educator });
         const courseIds = courses.map(course => course._id);

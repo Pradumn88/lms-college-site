@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
 import OTP from '../models/OTP.js';
 import { generateOTP, sendOTPEmail, sendWelcomeEmail } from '../utils/emailService.js';
+import connectDB from '../configs/mongodb.js'; // 👈 FIX 1: Import the connection function
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -14,6 +15,8 @@ const generateToken = (userId, role) => {
 // Register User - Step 1: Send OTP
 export const registerUser = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2: Connect before querying
+
         const { name, email, password, role = 'student' } = req.body;
 
         if (!name || !email || !password) {
@@ -77,6 +80,8 @@ export const registerUser = async (req, res) => {
 // Verify OTP and Complete Registration
 export const verifyOTP = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2: Connect before querying
+
         const { email, otp } = req.body;
 
         if (!email || !otp) {
@@ -149,6 +154,8 @@ export const verifyOTP = async (req, res) => {
 // Resend OTP
 export const resendOTP = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2: Connect before querying
+
         const { email } = req.body;
 
         if (!email) {
@@ -202,6 +209,8 @@ export const resendOTP = async (req, res) => {
 // Login User
 export const loginUser = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2: Connect before querying
+
         const { email, password } = req.body;
 
         if (!email || !password) {
@@ -266,6 +275,8 @@ export const loginUser = async (req, res) => {
 // Get Current User
 export const getCurrentUser = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2: Connect before querying
+
         const user = await User.findById(req.userId).select('-password').populate('enrolledCourses');
         if (!user) {
             return res.json({ success: false, message: 'User not found' });
@@ -291,6 +302,8 @@ export const getCurrentUser = async (req, res) => {
 // Update User to Educator
 export const becomeEducator = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2: Connect before querying
+
         const user = await User.findById(req.userId);
         if (!user) {
             return res.json({ success: false, message: 'User not found' });
@@ -326,6 +339,8 @@ export const becomeEducator = async (req, res) => {
 // Verify Token
 export const verifyToken = async (req, res) => {
     try {
+        await connectDB(); // 👈 FIX 2: Connect before querying
+
         const user = await User.findById(req.userId).select('-password');
         if (!user) {
             return res.json({ success: false, message: 'User not found' });
